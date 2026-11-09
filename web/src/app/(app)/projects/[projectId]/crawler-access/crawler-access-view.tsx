@@ -26,10 +26,8 @@ type BotFinding = AccessCheck["bots"][number];
 const IN_FLIGHT: CrawlStatus[] = ["QUEUED", "CRAWLING", "ANALYZING"];
 const READY: CrawlStatus[] = ["COMPLETED", "COMPLETED_DEGRADED"];
 
-// A confident, distinct green for "allowed" states — the design system only defines
-// primary/secondary/destructive tokens (see globals.css), so this follows the same ad hoc
-// oklch pattern dashboard-view.tsx uses for its degradation banner.
-const ALLOWED_BADGE_CLASS = "border-transparent bg-[oklch(0.91_0.07_150)] text-[oklch(0.35_0.1_150)]";
+// Duochrome green for "allowed" (Frontend-Design §3) — always beside its icon and word.
+const ALLOWED_BADGE_CLASS = "border-duo-green/30 bg-duo-green/10 text-duo-green";
 
 export function CrawlerAccessView({
   projectId,
@@ -70,9 +68,9 @@ export function CrawlerAccessView({
   });
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">AI Crawler Access</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">AI Crawler Access</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Whether ChatGPT, Perplexity, and other AI engines can actually reach and read your
           site.
@@ -111,7 +109,7 @@ function ReadyState({ accessCheck }: { accessCheck: AccessCheck }) {
         <RobotsTxtCard present={accessCheck.robotsTxtPresent} />
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         <div className="flex items-center justify-between">
           <SectionLabel>Bot-by-bot access</SectionLabel>
           <span className="text-xs text-muted-foreground">
@@ -137,27 +135,29 @@ function AllowedShareCard({ allowedShare }: { allowedShare: number }) {
   const dash = (allowedShare / 100) * circumference;
 
   return (
-    <div className="flex items-center gap-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="flex items-center gap-6 panel p-6">
       <div className="relative h-28 w-28 shrink-0">
         <svg viewBox="0 0 128 128" className="h-28 w-28 -rotate-90">
-          <circle cx="64" cy="64" r="54" fill="none" stroke="var(--secondary)" strokeWidth={12} />
+          <circle cx="64" cy="64" r="54" fill="none" stroke="var(--secondary)" strokeWidth={7} />
           <circle
             cx="64"
             cy="64"
             r="54"
             fill="none"
             stroke="var(--primary)"
-            strokeWidth={12}
+            strokeWidth={7}
             strokeLinecap="round"
             strokeDasharray={`${dash} ${circumference}`}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-extrabold tracking-tight">{allowedShare}%</span>
+          <span className="text-2xl leading-none font-extrabold tracking-[-0.02em] tabular-nums">
+            {`${allowedShare}%`}
+          </span>
         </div>
       </div>
       <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+        <span className="section-label">
           AI crawlers allowed
         </span>
         <span className="text-xs text-muted-foreground">
@@ -170,7 +170,7 @@ function AllowedShareCard({ allowedShare }: { allowedShare: number }) {
 
 function LlmsTxtCard({ llmsTxt }: { llmsTxt: AccessCheck["llmsTxt"] }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <div className="flex items-center justify-between">
         <SectionLabel>llms.txt</SectionLabel>
         <FileTextIcon className="h-4 w-4 text-muted-foreground" />
@@ -206,7 +206,7 @@ function LlmsTxtCard({ llmsTxt }: { llmsTxt: AccessCheck["llmsTxt"] }) {
 
 function RobotsTxtCard({ present }: { present: boolean }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <div className="flex items-center justify-between">
         <SectionLabel>robots.txt</SectionLabel>
         {present ? (
@@ -308,7 +308,7 @@ function NoCrawlState({ projectId }: { projectId: string }) {
       title="No crawl yet"
       description="Start a crawl from the dashboard to check whether AI crawlers can access your site."
     >
-      <Button render={<Link href={`/projects/${projectId}`} />} nativeButton={false}>Go to dashboard →</Button>
+      <Button render={<Link href={`/projects/${projectId}`} />} nativeButton={false}>Go to dashboard</Button>
     </EmptyStateCard>
   );
 }
@@ -330,7 +330,7 @@ function UnavailableState({ status, projectId }: { status: CrawlStatus; projectI
       title={status === "FAILED" ? "Latest crawl failed" : "Latest crawl was canceled"}
       description="Start a new crawl from the dashboard to check AI crawler access."
     >
-      <Button render={<Link href={`/projects/${projectId}`} />} nativeButton={false}>Go to dashboard →</Button>
+      <Button render={<Link href={`/projects/${projectId}`} />} nativeButton={false}>Go to dashboard</Button>
     </EmptyStateCard>
   );
 }
@@ -357,7 +357,7 @@ function EmptyStateCard({
   children?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-start gap-3 rounded-2xl border-2 border-dashed border-border bg-secondary/40 p-8">
+    <div className="flex flex-col items-start gap-3 rounded-[10px] border border-dashed border-input bg-card/60 p-8">
       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-muted-foreground">
         {icon}
       </span>
@@ -372,7 +372,7 @@ function EmptyStateCard({
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <span className="section-label">
       {children}
     </span>
   );

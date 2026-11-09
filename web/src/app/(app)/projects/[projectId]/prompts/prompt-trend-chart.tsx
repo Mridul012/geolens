@@ -43,7 +43,7 @@ export function PromptTrendChart({ trend }: { trend: PromptRunTrend["data"] }) {
   return (
     <div className="mt-3 flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="group" aria-label="Metric" className="flex gap-1 rounded-xl bg-secondary p-1">
+        <div role="group" aria-label="Metric" className="flex gap-1 rounded-full bg-secondary p-1">
           {METRICS.map(({ id, label }) => (
             <button
               key={id}
@@ -51,9 +51,9 @@ export function PromptTrendChart({ trend }: { trend: PromptRunTrend["data"] }) {
               aria-pressed={metric === id}
               onClick={() => setMetric(id)}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-semibold",
+                "rounded-full px-3 py-1.5 text-xs font-semibold",
                 metric === id
-                  ? "bg-card text-foreground shadow-sm"
+                  ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -73,7 +73,7 @@ export function PromptTrendChart({ trend }: { trend: PromptRunTrend["data"] }) {
 
       {/* Labels are HTML so they keep their size; only the plot stretches to the card. */}
       <div className="flex gap-3">
-        <div className="relative h-44 w-9 shrink-0 text-right text-[11px] text-muted-foreground">
+        <div className="relative h-44 w-9 shrink-0 text-right text-xs text-muted-foreground">
           {[100, 50, 0].map((tick) => (
             <span
               key={tick}
@@ -125,7 +125,7 @@ export function PromptTrendChart({ trend }: { trend: PromptRunTrend["data"] }) {
               )),
             )}
           </svg>
-          <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
+          <div className="mt-2 flex justify-between text-xs text-muted-foreground">
             <span suppressHydrationWarning>{shortDate(trend[0]!.at)}</span>
             <span suppressHydrationWarning>{shortDate(trend[trend.length - 1]!.at)}</span>
           </div>

@@ -83,10 +83,10 @@ export function RecommendationsView({
   const recommendations = data?.data ?? [];
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Recommendations</h1>
+          <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Recommendations</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Fixes ranked by impact vs. difficulty — work the top of the list first.
           </p>
@@ -128,11 +128,11 @@ export function RecommendationsView({
       {isLoading && !data ? (
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((index) => (
-            <Skeleton key={index} className="h-24 w-full rounded-2xl" />
+            <Skeleton key={index} className="h-24 w-full rounded-[10px]" />
           ))}
         </div>
       ) : recommendations.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/40 p-8 text-center">
+        <div className="rounded-[10px] border border-dashed border-input bg-card/60 p-8 text-center">
           <p className="text-lg font-bold">No recommendations match these filters</p>
           <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
             Try a different status or priority, or run a crawl to generate fresh findings.
@@ -179,7 +179,7 @@ function RecommendationCard({
     <button
       type="button"
       onClick={onOpen}
-      className="flex items-center gap-4 rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+      className="flex items-center gap-4 panel p-6 text-left transition-colors hover:border-foreground"
     >
       <PriorityBadge priority={recommendation.priority} />
       <div className="min-w-0 flex-1">
@@ -355,7 +355,7 @@ function StatusBadge({ status }: { status: RecStatus }) {
     return (
       <Badge
         variant="outline"
-        className="shrink-0 border-[oklch(0.62_0.13_155)] text-[oklch(0.4_0.13_155)]"
+        className="shrink-0 border-duo-green/40 text-duo-green"
       >
         VALIDATED
       </Badge>
@@ -379,7 +379,7 @@ function StatusBadge({ status }: { status: RecStatus }) {
 function ScoreBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+      <span className="text-xs font-semibold text-muted-foreground">
         {label}
       </span>
       <div className="flex gap-0.5" role="img" aria-label={`${label} ${value} of 5`}>
@@ -398,7 +398,7 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">{children}</span>
+    <span className="section-label">{children}</span>
   );
 }
 

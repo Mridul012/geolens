@@ -44,15 +44,15 @@ export function HistoryView({
   const events = feed.data.pages.flatMap((page) => page.data);
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">History</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">History</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           What changed, newest first: crawls, scores, citations and AI crawler access.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         {events.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Nothing has happened yet. Run your first crawl and its results will show up here.
@@ -259,7 +259,7 @@ function countOf(value: unknown, singular: string, plural: string): string | nul
 
 function joinParts(parts: Array<string | null>): string | null {
   const present = parts.filter((part): part is string => part !== null);
-  return present.length === 0 ? null : present.join(" · ");
+  return present.length === 0 ? null : present.join(", ");
 }
 
 function botList(bots: string[]): string {

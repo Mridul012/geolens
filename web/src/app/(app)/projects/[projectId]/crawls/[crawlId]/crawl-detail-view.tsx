@@ -8,6 +8,8 @@ import type { Crawl, CrawlStatus } from "@contracts/api/crawls";
 import type { PageSnapshotDetail, PageSnapshotSummary } from "@contracts/api/snapshots";
 import type { Page } from "@contracts/api/common";
 import { apiFetch, ApiError, API_BASE_URL } from "@/lib/api/client";
+import { normalizeUrl, readSections, type LensPage } from "@/lib/evidence";
+import { PageLens } from "@/components/page-lens";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -45,11 +47,14 @@ export function CrawlDetailView({
   crawlId,
   initialCrawl,
   initialPages,
+  citedUrls = [],
 }: {
   projectId: string;
   crawlId: string;
   initialCrawl: Crawl;
   initialPages: Page<PageSnapshotSummary>;
+  /** Normalized URLs AI answers cited in the latest prompt run — those pages render sharp. */
+  citedUrls?: readonly string[];
 }) {
   const queryClient = useQueryClient();
   const [changedOnly, setChangedOnly] = useState(false);
@@ -157,7 +162,7 @@ export function CrawlDetailView({
       : null;
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div className="flex items-center justify-between">
         <div>
           <Link
@@ -167,13 +172,13 @@ export function CrawlDetailView({
             ← All crawls
           </Link>
           <div className="mt-1 flex items-center gap-2.5">
-            <h1 className="text-2xl font-extrabold tracking-tight">Crawl detail</h1>
+            <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Crawl detail</h1>
             <Badge variant={STATUS_VARIANT[crawl.status]}>{crawl.status}</Badge>
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {crawl.trigger === "MANUAL" ? "Manual" : "Scheduled"} · queued{" "}
+            {crawl.trigger === "MANUAL" ? "Manual crawl" : "Scheduled crawl"}, queued{" "}
             {relativeTime(crawl.queuedAt)}
-            {crawl.finishedAt && ` · finished ${relativeTime(crawl.finishedAt)}`}
+            {crawl.finishedAt && `, finished ${relativeTime(crawl.finishedAt)}`}
           </p>
         </div>
         {inFlight && (
@@ -194,7 +199,7 @@ export function CrawlDetailView({
       )}
 
       {inFlight && (
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="panel p-6">
           <SectionLabel>Live progress</SectionLabel>
           <p className="mt-2 text-sm font-semibold">{liveStage ?? "Connecting…"}</p>
           <Progress value={progressPercent} className="mt-3" />
@@ -216,7 +221,7 @@ export function CrawlDetailView({
         </div>
       )}
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         <SectionLabel>Stats</SectionLabel>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile label="Discovered" value={crawl.stats.pagesDiscovered} />
@@ -225,13 +230,17 @@ export function CrawlDetailView({
           <StatTile label="Failed" value={crawl.stats.pagesFailed} />
         </div>
         {crawl.degradation && (
-          <div className="mt-3 rounded-lg bg-[oklch(0.9_0.06_80)] px-3 py-2 text-xs text-[oklch(0.4_0.1_70)]">
+          <div className="mt-3 border-l-2 border-destructive pl-3 text-sm">
             Some components degraded during this crawl — results may be partial.
           </div>
         )}
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      {pages.length > 0 && (
+        <ThroughTheLens projectId={projectId} pages={pages} citedUrls={citedUrls} />
+      )}
+
+      <div className="panel p-6">
         <div className="flex items-center justify-between">
           <SectionLabel>Pages</SectionLabel>
           <Button
@@ -388,11 +397,83 @@ function SnapshotDetailPanel({
   );
 }
 
+/**
+ * The page-evidence view (Frontend-Design §3): one crawled page at a time, rendered as AI
+ * engines find it, with the lens to read it as written. The dashboard's "Can it read you?"
+ * line links here (#through-the-lens).
+ */
+function ThroughTheLens({
+  projectId,
+  pages,
+  citedUrls,
+}: {
+  projectId: string;
+  pages: PageSnapshotSummary[];
+  citedUrls: readonly string[];
+}) {
+  const [snapshotId, setSnapshotId] = useState(pages[0]!.id);
+  const cited = new Set(citedUrls);
+  // Shares the side sheet's cache key, so opening either fetches the snapshot once.
+  const { data: snapshot, isError } = useQuery({
+    queryKey: ["snapshot", projectId, snapshotId],
+    queryFn: () => apiFetch<PageSnapshotDetail>(`/v1/projects/${projectId}/snapshots/${snapshotId}`),
+  });
+  const lensPage: LensPage | null =
+    snapshot && snapshot.id === snapshotId
+      ? {
+          id: snapshot.id,
+          url: snapshot.url,
+          title: snapshot.title ?? snapshot.url,
+          qualityScore: snapshot.qualityScore,
+          wordCount: snapshot.wordCount,
+          cited: cited.has(normalizeUrl(snapshot.url)),
+          sections: readSections(snapshot.extracted),
+        }
+      : null;
+
+  return (
+    <section id="through-the-lens" className="panel scroll-mt-28 p-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="section-label">Through the lens</h2>
+          <p className="mt-1 max-w-[60ch] text-sm text-muted-foreground">
+            A page as AI engines find it: sharp only where an AI answer cited it, otherwise blurred as its content
+            quality drops, and blurriest when it was never scored.
+          </p>
+        </div>
+        <label className="flex flex-col gap-1 text-sm font-semibold">
+          Page
+          <select
+            value={snapshotId}
+            onChange={(event) => setSnapshotId(event.target.value)}
+            className="h-10 max-w-xs rounded-md border border-input bg-card px-3 text-sm font-normal"
+          >
+            {pages.map((page) => (
+              <option key={page.id} value={page.id}>
+                {page.title ?? page.url}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="mt-5">
+        {isError ? (
+          <p className="text-sm text-destructive">This page&apos;s snapshot couldn&apos;t be loaded.</p>
+        ) : lensPage ? (
+          <PageLens key={lensPage.id} page={lensPage} />
+        ) : (
+          <p className="text-sm text-muted-foreground">Loading the page…</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function StatTile({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl bg-secondary p-3">
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-      <span className="text-xl font-extrabold">{value}</span>
+    <div className="flex flex-col gap-1 rounded-md border border-border p-3">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-[28px] leading-none font-extrabold tracking-[-0.02em] tabular-nums">{value}</span>
     </div>
   );
 }
@@ -400,7 +481,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
 function DetailStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] text-muted-foreground">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
       <span className="font-semibold">{value}</span>
     </div>
   );
@@ -408,7 +489,7 @@ function DetailStat({ label, value }: { label: string; value: string | number })
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <span className="section-label">
       {children}
     </span>
   );
@@ -416,9 +497,11 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 function NotYetMeasured({ caption }: { caption: string }) {
   return (
-    <div className="mt-2 flex items-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 px-4 py-3">
-      <span className="text-lg font-extrabold text-muted-foreground/50">—</span>
-      <span className="text-xs text-muted-foreground">{caption}</span>
+    <div className="mt-2 flex items-center gap-4">
+      <span aria-hidden="true" className="out-of-focus text-[37px] leading-none font-extrabold">
+        00
+      </span>
+      <span className="text-sm text-muted-foreground">{caption}</span>
     </div>
   );
 }

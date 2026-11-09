@@ -3,7 +3,7 @@ import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ProjectDetail } from "@contracts/api/projects";
 import type { Me } from "@contracts/api/auth";
-import { Sidebar } from "@/components/sidebar";
+import { ProjectHeader } from "@/components/project-header";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import { markHistorySeen } from "@/lib/history-seen";
 import { renderWithQueryClient, stubLocalStorage } from "../test-utils";
@@ -78,7 +78,7 @@ function unauthorized() {
   });
 }
 
-describe("Sidebar", () => {
+describe("ProjectHeader", () => {
   beforeEach(() => {
     pathname = `/projects/${PROJECT_ID}`;
     stubLocalStorage();
@@ -93,7 +93,7 @@ describe("Sidebar", () => {
 
   it("links to History and Settings for the project", () => {
     eventsWithCrawlAt(null);
-    renderWithQueryClient(<Sidebar project={project} me={me} />);
+    renderWithQueryClient(<ProjectHeader project={project} me={me} />);
 
     expect(screen.getByRole("link", { name: /history/i })).toHaveAttribute(
       "href",
@@ -109,7 +109,7 @@ describe("Sidebar", () => {
     it("ends the session, clears cached data and returns to sign-in", async () => {
       eventsWithCrawlAt(null);
       const user = userEvent.setup();
-      const { queryClient } = renderWithQueryClient(<Sidebar project={project} me={me} />);
+      const { queryClient } = renderWithQueryClient(<ProjectHeader project={project} me={me} />);
       queryClient.setQueryData(["dashboard", PROJECT_ID], { secret: true });
 
       await user.click(screen.getByRole("button", { name: /sign out/i }));
@@ -123,7 +123,7 @@ describe("Sidebar", () => {
     it("still leaves when the session had already expired", async () => {
       eventsWithCrawlAt(null);
       const user = userEvent.setup();
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
       vi.mocked(apiFetch).mockRejectedValueOnce(unauthorized());
 
       await user.click(screen.getByRole("button", { name: /sign out/i }));
@@ -135,7 +135,7 @@ describe("Sidebar", () => {
     it("stays put and says so when sign-out fails for another reason", async () => {
       eventsWithCrawlAt(null);
       const user = userEvent.setup();
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
       vi.mocked(apiFetch).mockRejectedValueOnce(new Error("network down"));
 
       await user.click(screen.getByRole("button", { name: /sign out/i }));
@@ -148,14 +148,14 @@ describe("Sidebar", () => {
   describe("new crawl results dot", () => {
     it("shows when a crawl finished and History was never opened here", async () => {
       eventsWithCrawlAt(CRAWL_DONE_AT);
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
 
       expect(await screen.findByLabelText("New crawl results")).toBeInTheDocument();
     });
 
     it("clears once History is visited after that crawl", async () => {
       eventsWithCrawlAt(CRAWL_DONE_AT);
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
       await screen.findByLabelText("New crawl results");
 
       act(() => markHistorySeen(PROJECT_ID, Date.parse(CRAWL_DONE_AT) + 1));
@@ -168,7 +168,7 @@ describe("Sidebar", () => {
     it("does not show for a crawl older than the last visit", async () => {
       markHistorySeen(PROJECT_ID, Date.parse(CRAWL_DONE_AT) + 60_000);
       eventsWithCrawlAt(CRAWL_DONE_AT);
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
 
       await waitFor(() => expect(apiFetch).toHaveBeenCalled());
       expect(screen.queryByLabelText("New crawl results")).not.toBeInTheDocument();
@@ -177,7 +177,7 @@ describe("Sidebar", () => {
     it("does not show while History itself is open", async () => {
       pathname = `/projects/${PROJECT_ID}/history`;
       eventsWithCrawlAt(CRAWL_DONE_AT);
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
 
       await waitFor(() => expect(apiFetch).toHaveBeenCalled());
       expect(screen.queryByLabelText("New crawl results")).not.toBeInTheDocument();
@@ -185,10 +185,70 @@ describe("Sidebar", () => {
 
     it("stays hidden when there has never been a crawl", async () => {
       eventsWithCrawlAt(null);
-      renderWithQueryClient(<Sidebar project={project} me={me} />);
+      renderWithQueryClient(<ProjectHeader project={project} me={me} />);
 
       await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
       expect(screen.queryByLabelText("New crawl results")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("focus strip", () => {
+    const withSite: ProjectDetail = {
+      ...project,
+      sites: [
+        {
+          id: "33333333-3333-3333-3333-333333333333",
+          url: "https://acme.example/",
+          domain: "acme.example",
+          role: "OWN",
+          name: null,
+        },
+      ],
+    };
+
+    it("is hidden on the dashboard, where the full-size hero takes its place", () => {
+      eventsWithCrawlAt(null);
+      renderWithQueryClient(<ProjectHeader project={withSite} me={me} />);
+
+      expect(screen.queryByRole("link", { name: /ai visibility/i })).not.toBeInTheDocument();
+    });
+
+    it("keeps the site's measured visibility in view on every other page", () => {
+      pathname = `/projects/${PROJECT_ID}/topics`;
+      eventsWithCrawlAt(null);
+      const scored: ProjectDetail = {
+        ...withSite,
+        latestScore: {
+          id: "44444444-4444-4444-4444-444444444444",
+          composite: 42,
+          scoreCitation: null,
+          scoreRetrievability: null,
+          scoreContentQuality: null,
+          scoreTopicCoverage: null,
+          scoreTechnical: null,
+          scoreTrust: null,
+          crawlId: null,
+          promptRunId: null,
+          scoringConfigVersion: "scoring.v1",
+          createdAt: "2026-11-09T10:00:00.000Z",
+        },
+      };
+      renderWithQueryClient(<ProjectHeader project={scored} me={me} />);
+
+      const strip = screen.getByRole("link", { name: /ai visibility 42 out of 100/i });
+      expect(strip).toHaveAttribute("href", `/projects/${PROJECT_ID}`);
+      expect(strip).toHaveAccessibleName(/acme\.example/);
+    });
+
+    it("says 'not measured' rather than showing a score of 0", () => {
+      pathname = `/projects/${PROJECT_ID}/topics`;
+      eventsWithCrawlAt(null);
+      renderWithQueryClient(<ProjectHeader project={withSite} me={me} />);
+
+      expect(
+        screen.getByRole("link", { name: /ai visibility not yet measured/i }),
+      ).toBeInTheDocument();
+      expect(screen.queryByText("0")).not.toBeInTheDocument();
     });
   });
 });

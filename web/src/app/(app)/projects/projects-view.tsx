@@ -38,7 +38,7 @@ export function ProjectsView({ initialProjects }: { initialProjects: Project[] }
   return (
     <div className="flex flex-col gap-9">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Your projects</h1>
+        <h1 className="text-[37px] leading-tight font-extrabold tracking-[-0.02em]">Your projects</h1>
         <p className="mt-1.5 text-muted-foreground">
           Pick one to open, or start tracking a new site.
         </p>
@@ -53,7 +53,7 @@ export function ProjectsView({ initialProjects }: { initialProjects: Project[] }
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+              className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-[10px] border border-dashed border-input text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
                 <PlusIcon className="h-4.5 w-4.5" />
@@ -76,9 +76,9 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="flex flex-col gap-3.5 rounded-2xl border border-border bg-card p-6 shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+      className="flex flex-col gap-3.5 panel p-6 transition-colors hover:border-foreground"
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-sm font-extrabold text-accent-foreground">
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-sm font-extrabold text-background">
         {project.name.slice(0, 2).toUpperCase()}
       </div>
       <div className="text-[17px] font-bold">{project.name}</div>
@@ -113,11 +113,12 @@ function CreateProjectCard({ onCancel }: { onCancel?: () => void }) {
   });
 
   return (
-    <div className="max-w-xl rounded-2xl border border-border bg-card p-9 shadow-sm">
-      <div className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
-        Create project
-      </div>
-      <div className="mt-1.5 text-xl font-bold">Paste your URL — under a minute to start</div>
+    <div className="max-w-xl panel p-9">
+      <h2 className="text-[21px] font-extrabold tracking-[-0.01em]">Track a new site</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Add your site and, optionally, one competitor. You start the first crawl from the
+        dashboard.
+      </p>
 
       {mutation.isError && (
         <Alert variant="destructive" className="mt-5">
@@ -155,7 +156,7 @@ function CreateProjectCard({ onCancel }: { onCancel?: () => void }) {
         </div>
         <div className="mt-1 flex items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? "Creating…" : "Start crawling →"}
+            {mutation.isPending ? "Creating…" : "Create project"}
           </Button>
           {onCancel && (
             <Button type="button" variant="ghost" onClick={onCancel}>

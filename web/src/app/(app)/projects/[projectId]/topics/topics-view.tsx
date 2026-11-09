@@ -50,9 +50,9 @@ export function TopicsView({
   });
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Topics & Coverage</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Topics & Coverage</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           The topics AI engines associate with your site, and how your coverage compares to
           your competitor&apos;s.
@@ -67,7 +67,7 @@ export function TopicsView({
 
 function TaxonomySection({ topics, projectId }: { topics: Topic[]; projectId: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <SectionLabel>Taxonomy</SectionLabel>
 
       {topics.length === 0 ? (
@@ -152,8 +152,8 @@ function AddTopicForm({ projectId }: { projectId: string }) {
   });
 
   return (
-    <div className="mt-5 rounded-xl border-2 border-dashed border-border p-5">
-      <div className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <div className="mt-5 rounded-[10px] border border-dashed border-input p-5">
+      <div className="section-label">
         Add topic
       </div>
 
@@ -213,7 +213,7 @@ function CoverageSection({ coverage }: { coverage: TopicCoverageResponse }) {
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <SectionLabel>Coverage</SectionLabel>
 
       {!hasCompetitorCrawl && (
@@ -281,7 +281,7 @@ function MutedDash() {
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <span className="section-label">
       {children}
     </span>
   );
@@ -289,9 +289,11 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 function NotYetMeasured({ caption }: { caption: string }) {
   return (
-    <div className="mt-3 flex items-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 px-4 py-3">
-      <span className="text-lg font-extrabold text-muted-foreground/50">—</span>
-      <span className="text-xs text-muted-foreground">{caption}</span>
+    <div className="mt-3 flex items-center gap-4">
+      <span aria-hidden="true" className="out-of-focus text-[37px] leading-none font-extrabold">
+        00
+      </span>
+      <span className="text-sm text-muted-foreground">{caption}</span>
     </div>
   );
 }

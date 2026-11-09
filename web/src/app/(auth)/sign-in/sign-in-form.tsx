@@ -41,7 +41,7 @@ export function SignInForm() {
       className="flex w-full max-w-sm flex-col gap-5"
     >
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight">Welcome back</h2>
+        <h2 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Welcome back</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">Sign in to your projects.</p>
       </div>
 
@@ -71,7 +71,7 @@ export function SignInForm() {
       </div>
 
       <Button type="submit" disabled={mutation.isPending} className="mt-1">
-        {mutation.isPending ? "Signing in…" : "Sign in →"}
+        {mutation.isPending ? "Signing in…" : "Sign in"}
       </Button>
 
       <OrDivider />

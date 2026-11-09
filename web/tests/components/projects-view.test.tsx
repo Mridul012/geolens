@@ -35,7 +35,7 @@ describe("ProjectsView", () => {
   it("goes straight to the create form when there are no projects yet", () => {
     renderWithQueryClient(<ProjectsView initialProjects={[]} />);
 
-    expect(screen.getByText("Paste your URL — under a minute to start")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Track a new site" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /new project/i })).not.toBeInTheDocument();
   });
 
@@ -45,7 +45,7 @@ describe("ProjectsView", () => {
     expect(screen.getByText("Acme")).toBeInTheDocument();
     expect(screen.getByText("acme.com")).toBeInTheDocument();
     expect(screen.getByText("no competitor added")).toBeInTheDocument();
-    expect(screen.queryByText("Paste your URL — under a minute to start")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Track a new site" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /new project/i })).toBeInTheDocument();
   });
 
@@ -54,7 +54,7 @@ describe("ProjectsView", () => {
     renderWithQueryClient(<ProjectsView initialProjects={[]} />);
 
     await user.type(screen.getByLabelText("Project name"), "Acme");
-    await user.click(screen.getByRole("button", { name: /start crawling/i }));
+    await user.click(screen.getByRole("button", { name: /create project/i }));
 
     await waitFor(() => expect(apiFetch).not.toHaveBeenCalled());
     expect(screen.getByText("String must contain at least 1 character(s)")).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("ProjectsView", () => {
 
     await user.type(screen.getByLabelText("Project name"), "New Co");
     await user.type(screen.getByLabelText("Your website"), "https://newco.com");
-    await user.click(screen.getByRole("button", { name: /start crawling/i }));
+    await user.click(screen.getByRole("button", { name: /create project/i }));
 
     await waitFor(() =>
       expect(apiFetch).toHaveBeenCalledWith("/v1/projects", {

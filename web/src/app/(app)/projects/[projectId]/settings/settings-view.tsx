@@ -31,9 +31,9 @@ export function SettingsView({
   initialCompetitors: Site[];
 }) {
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Settings</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Settings</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Project details, the competitor you are measured against, and deletion.
         </p>
@@ -342,8 +342,8 @@ function Section({
     <section
       className={
         danger
-          ? "rounded-2xl border border-destructive/40 bg-card p-6 shadow-sm"
-          : "rounded-2xl border border-border bg-card p-6 shadow-sm"
+          ? "panel border-destructive p-6"
+          : "panel p-6"
       }
     >
       <h2 className="text-base font-bold tracking-tight">{title}</h2>

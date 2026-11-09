@@ -74,7 +74,7 @@ describe("HistoryView", () => {
       "href",
       `/projects/${PROJECT_ID}/crawls/${CRAWL_ID}`,
     );
-    expect(screen.getByText("24 pages crawled · 3 changed · 1 failed")).toBeInTheDocument();
+    expect(screen.getByText("24 pages crawled, 3 changed, 1 failed")).toBeInTheDocument();
   });
 
   it("loads older events with the cursor the API returned", async () => {
@@ -157,7 +157,7 @@ describe("describeEvent", () => {
     const described = describe_(
       event("prompt_run_completed", { mentionRate: 62.5, citationShare: 20 }),
     );
-    expect(described.detail).toBe("Mentioned in 63% of answers · cited in 20%");
+    expect(described.detail).toBe("Mentioned in 63% of answers, cited in 20%");
   });
 
   it("still shows a kind it has no copy for, instead of hiding it", () => {

@@ -65,20 +65,20 @@ export function CrawlsView({
   });
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Crawls</h1>
+          <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Crawls</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Every crawl run for this project, with status and page counts.
           </p>
         </div>
         <Button onClick={() => startCrawl.mutate()} disabled={startCrawl.isPending}>
-          {startCrawl.isPending ? "Starting…" : "Start crawl →"}
+          {startCrawl.isPending ? "Starting…" : "Start crawl"}
         </Button>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card shadow-sm">
+      <div className="panel">
         {crawls.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">
             No crawls yet. Start one to begin measuring AI visibility.

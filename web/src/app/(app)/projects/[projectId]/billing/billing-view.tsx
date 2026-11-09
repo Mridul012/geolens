@@ -41,13 +41,13 @@ export function BillingView({ initialMe }: { initialMe: Me }) {
   });
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Billing</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Billing</h1>
         <p className="text-sm text-muted-foreground">Manage your plan and usage.</p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Badge variant={me.plan === "PRO" ? "default" : "secondary"}>{me.plan}</Badge>
@@ -65,8 +65,8 @@ export function BillingView({ initialMe }: { initialMe: Me }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">Usage</span>
+      <div className="panel p-6">
+        <span className="section-label">Usage</span>
         <div className="mt-4 flex flex-col gap-5">
           {USAGE_FIELDS.map(({ key, label }) => {
             const counter = me.usage[key];

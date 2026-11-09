@@ -20,14 +20,14 @@ export default async function ProjectComparisonPage({
     // takes over instead), so this has to be caught here rather than left to propagate.
     if (error instanceof ApiError && error.problem.code === "PLAN_LIMIT_EXCEEDED") {
       return (
-        <div className="flex flex-col gap-6 p-10">
+        <div className="flex flex-col gap-6 p-5 md:p-10">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight">Comparison</h1>
+            <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Comparison</h1>
             <p className="mt-0.5 text-sm text-muted-foreground">
               See how you stack up against your competitor.
             </p>
           </div>
-          <div className="rounded-2xl border-2 border-dashed border-border bg-secondary/40 p-8 text-center">
+          <div className="rounded-[10px] border border-dashed border-input bg-card/60 p-8 text-center">
             <p className="text-lg font-bold">Comparison is a Pro feature</p>
             <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
               {error.problem.detail ?? "Upgrade to compare your site against a competitor."}
@@ -37,7 +37,7 @@ export default async function ProjectComparisonPage({
               render={<Link href={`/projects/${projectId}/billing`} />}
               nativeButton={false}
             >
-              Upgrade to Pro →
+              Upgrade to Pro
             </Button>
           </div>
         </div>

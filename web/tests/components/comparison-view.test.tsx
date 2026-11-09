@@ -92,10 +92,11 @@ describe("ComparisonView", () => {
     expect(
       screen.getByText("Not yet crawled — metrics will appear once a crawl completes."),
     ).toBeInTheDocument();
-    // Null is not zero: every metric on the competitor card renders a dash, never "0".
+    // Null is not zero: every metric on the competitor card says "not measured" (drawn out
+    // of focus), never "0".
     expect(screen.queryByText("0")).not.toBeInTheDocument();
-    const dashes = screen.getAllByText("—");
-    expect(dashes.length).toBeGreaterThanOrEqual(Object.keys(emptyMetrics).length);
+    const unmeasured = screen.getAllByText("not measured");
+    expect(unmeasured.length).toBeGreaterThanOrEqual(Object.keys(emptyMetrics).length);
   });
 
   it("renders a fully populated comparison with share of voice and missing topics", () => {

@@ -95,10 +95,10 @@ export function ReportsView({
   }
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Reports</h1>
+          <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Reports</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Generate and download PDF snapshots of your AI visibility.
           </p>
@@ -109,7 +109,7 @@ export function ReportsView({
       </div>
 
       {formOpen && (
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="panel p-6">
           <SectionLabel>Sections to include</SectionLabel>
           <div className="mt-3 flex flex-wrap gap-4">
             {REPORT_SECTIONS.map((section) => (
@@ -134,7 +134,7 @@ export function ReportsView({
         </div>
       )}
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         {reports.data.length === 0 ? (
           <p className="text-sm text-muted-foreground">No reports yet.</p>
         ) : (
@@ -197,7 +197,7 @@ function StatusBadge({ status }: { status: ReportStatus }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <span className="section-label">
       {children}
     </span>
   );

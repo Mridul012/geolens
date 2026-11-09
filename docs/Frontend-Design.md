@@ -1,6 +1,8 @@
 # GEOlens — Frontend Design Spec
 
-**Status:** Visual direction locked via mockup canvas (Claude Design). Next.js build not yet started.
+**Status:** Built (web/). Visual direction **revised 2026-11-09** by the project owner: the original
+cream/terracotta direction read as a generic AI-generated look and is replaced by the "Optician"
+direction in §3–§4.
 **Pairs with:** docs/API.md (data contract), docs/PRD.md (personas/journey), docs/Engineering-Rules.md §8 (frontend stack).
 
 ---
@@ -42,36 +44,96 @@ This was already anticipated in the codebase, just never acted on:
 - `container.ts` already builds its CORS allow-list as
   `[env.APP_BASE_URL, ...env.CORS_ORIGINS]` — the web app's origin is always trusted.
 
-So the Next.js app should run on port 3001 in local dev, call `API_BASE_URL` for every
+So the Next.js app runs on port 3005 in local dev (3001 is the browser worker's health port), calls `API_BASE_URL` for every
 request, and rely on the Fastify server's existing CORS + cookie configuration. No backend
 change is required to start the frontend build.
 
-## 3. Visual direction
+## 3. Visual direction — "Optician"
 
-Claude.ai-inspired, made concrete — deliberately **not** generic-SaaS (no default shadcn
-slate/zinc theme, no bootstrap blue, no dark-mode-first design):
+GEOlens is a lens: it measures how clearly AI engines can *see* a business. The design takes
+its vocabulary from the optician's room — the eye chart, the duochrome test, focus — rather
+than from SaaS-dashboard defaults. The original cream/terracotta direction (and the dark
+acid-green, broadsheet and gradient alternatives considered on 2026-11-09) were rejected
+because each is a recognisable AI-generated default rather than a choice made for this product.
 
-- **Base:** warm neutral/cream background, not stark white.
-- **Accent:** one confident, warm accent (coral/terracotta family) used sparingly — CTAs,
-  active states, the score's positive-trend color — never spread across the whole UI.
-- **Space:** generous whitespace, calm density even on data-heavy screens (dashboard,
-  prompt-tracking evidence).
-- **Shape:** soft, large corner radii on cards and inputs.
-- **Depth:** restrained shadows — soft, low-contrast elevation, not heavy drop shadows.
-- **Type:** a clean sans with a clear hierarchy (large confident numerals for scores, calm
-  body text for evidence/answer text).
+**Palette** (light only; tokens in `web/src/app/globals.css`):
+
+| Name | Hex | Role |
+|---|---|---|
+| Wall | `#EEF0EC` | Page background — the cool grey of an exam-room wall, never cream |
+| Chart white | `#FFFFFF` | Panels: the test card the content sits on |
+| Ink | `#000000` | Text, primary buttons, the active nav row — true black, never tinted |
+| Graphite | `#585D59` | Secondary text (≥ 5.5:1 on both wall and chart white) |
+| Coating violet | `#4A2FF5` | The one interactive accent: links, focus rings, selected state |
+| Duochrome red / green | `#D6001C` / `#007A38` | The brand mark and status — always paired with an icon or word, never colour alone |
+
+**Type:** Atkinson Hyperlegible Next for everything — designed by the Braille Institute for
+low-vision readers, because legibility *is* this product's subject. Atkinson Hyperlegible Mono
+only for things the user copies (robots.txt fixes, URLs in evidence), never for labels.
+Scale is a perfect fourth from 16px (12 · 14 · 16 · 21 · 28 · 37 · 50 · 67 · 89); headings at
+800 weight with slight negative tracking; body at 400 with 1.55 line height and ≤ 75ch lines.
+
+**The one bold thing — focus.** Optical blur encodes visibility, and it is the only decorative
+effect in the system:
+- The dashboard opens on the project's own domain set huge, rendered as out of focus as AI
+  engines find it (blur scales with 100 − composite score). Improving the score literally
+  sharpens your name.
+- **Null is not zero (§7) has one treatment everywhere:** an unmeasured value is rendered out
+  of focus (`.out-of-focus`) with plain words beside it, never as `0` or a bare dash.
+- The sign-in screen is an eye chart: rows of letters shrinking and blurring line by line.
+
+**The dashboard is an eye exam** (chosen 2026-11-09 from three live prototypes — The Lens,
+The Eye Exam, Through the Lens). It reads top to bottom as one chart. The chart's title is the
+site's own domain, blurred by its score, with the composite beside it. Below it, five acuity
+lines, each a question set smaller than the one before and numbered by acuity because they
+are a real sequence:
+
+| Acuity | Question | Answers it with |
+|---|---|---|
+| 20/200 | Can AI reach you? | Access check per bot, llms.txt/robots.txt, technical score |
+| 20/100 | Can it read you? | Retrievability verdict, retrievability/quality/coverage scores, missing topics, link to the page lens |
+| 20/50 | Does it cite you? | Mention rate and citation share, citation score, one real AI answer as evidence |
+| 20/30 | What to fix first | The ranked recommendations |
+| 20/20 | The fine print | Pages indexed, trust score, score trend, competitor, links out |
+
+These are the PRD's three questions in the order a buyer's visibility actually breaks down.
+Every number the panel dashboard showed still appears, on the line it answers. On very wide
+screens an acuity ladder on the right edge tracks the line being read.
+
+**Through the lens — the page-evidence view.** On Crawl detail, one crawled page at a time is
+shown as AI engines find it: **sharp only if an AI answer in the latest prompt run cited
+that exact page**, otherwise blurred as its content-quality score drops, and blurriest when it
+was never scored. A lens the user drags (or moves with arrow keys) shows the page as written;
+its rim is engraved with the evidence (cited or not, quality, word count). Blur is per page —
+the data does not support per-paragraph claims, so none are made.
+
+**Layout:** no sidebar rail. Every project page has a white top bar (wordmark, project
+switcher, account) and a row of text tabs whose active tab carries a 3px ink underline;
+content sits in a centered column (max 1200px). Under the tabs, every page except the
+dashboard shows the **focus strip**: the site's own domain at 28px, blurred by its score,
+with the score beside it, so the number being improved is always in view. On the dashboard
+the full-size hero replaces it. Phones get the same structure: the tab row scrolls sideways.
+Hero type steps down for long domains and only breaks after `.` and `-`.
+
+**Structure:** panels are chart-white with a hairline border and **no shadow**; radius follows
+hierarchy (panels 10px, inputs 6px, buttons fully round like a lens). Section labels are
+sentence case in ink, not tracked-out grey capitals. No `→` glued to button text, no
+middle-dot meta strings, no numbered markers unless the content is a sequence (acuity lines
+on the eye chart are one).
 
 ## 4. Animation direction
 
-"Very cool, little animations" — subtle, never gratuitous or slow:
-
-- Entrance/stagger animation on cards and list rows as a screen loads.
-- The composite score (and other headline numbers) **count up** rather than snapping to
-  their value.
-- Skeleton → loaded transition on every data fetch (TanStack Query's `isPending` state).
-- Hover micro-interactions on interactive cards (slight lift/scale, not full trigger).
-- Real implementation lands in the Next.js build via Framer Motion; the mockup canvas
-  encodes intent as annotations, not live motion.
+Motion is rare and means something:
+- **One orchestrated moment per screen:** on the dashboard the domain pulls into focus from
+  12px of blur to its measured sharpness (≈1.2s). Nothing else animates on load — no
+  staggered card entrances.
+- **Reading, not loading:** each eye-exam line's question sharpens once (500ms) as it first
+  reaches the middle of the screen, and never blurs again. It answers the user's scroll, so it
+  is not a load animation.
+- Animated blur stays under 20px everywhere (it is one of the costlier things to animate).
+- Motion that answers an action is welcome: a toggle sliding, a panel expanding, a toast.
+- `prefers-reduced-motion` skips the focus pull and shows the final state.
+- Implemented with CSS transitions/keyframes — no animation library is needed.
 
 ## 5. Component sourcing
 

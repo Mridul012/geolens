@@ -1,7 +1,7 @@
 import type { ProjectDetail } from "@contracts/api/projects";
 import type { Me } from "@contracts/api/auth";
 import { apiFetchServer } from "@/lib/api/server";
-import { Sidebar } from "@/components/sidebar";
+import { ProjectHeader } from "@/components/project-header";
 
 export default async function ProjectLayout({
   children,
@@ -14,9 +14,9 @@ export default async function ProjectLayout({
   ]);
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar project={project} me={me} />
-      <main className="flex-1 overflow-x-hidden">{children}</main>
+    <div className="flex min-h-screen flex-col">
+      <ProjectHeader project={project} me={me} />
+      <main className="mx-auto w-full max-w-[1200px] flex-1">{children}</main>
     </div>
   );
 }

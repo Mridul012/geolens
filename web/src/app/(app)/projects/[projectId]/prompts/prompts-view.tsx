@@ -201,21 +201,21 @@ export function PromptsView({
       : null;
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Prompts</h1>
+          <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Prompts</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Real answers from real AI engines to the questions your buyers ask.
           </p>
         </div>
         <Button onClick={() => startRun.mutate()} disabled={startRun.isPending || inFlight}>
-          {inFlight ? "Run in progress…" : "Run now →"}
+          {inFlight ? "Run in progress…" : "Run now"}
         </Button>
       </div>
 
       {inFlight && (
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="panel p-6">
           <SectionLabel>Live progress</SectionLabel>
           <Progress value={progressPercent} className="mt-3" />
           <p className="mt-2 text-xs text-muted-foreground">
@@ -226,7 +226,7 @@ export function PromptsView({
         </div>
       )}
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         <div className="flex items-center justify-between">
           <SectionLabel>Tracked prompts</SectionLabel>
           {!addingPrompt && (
@@ -251,12 +251,12 @@ export function PromptsView({
         )}
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         <SectionLabel>Trend</SectionLabel>
         <PromptTrendChart trend={trendQuery.data} />
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="panel p-6">
         <SectionLabel>Run history</SectionLabel>
         {runs.length === 0 ? (
           <EmptyRow text="No prompt runs yet — click “Run now” to get your first answers." />
@@ -311,7 +311,7 @@ export function PromptsView({
       </div>
 
       {selectedRunId && (
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="panel p-6">
           <SectionLabel>Results</SectionLabel>
           {resultsQuery.isLoading ? (
             <div className="mt-3 flex flex-col gap-2">
@@ -455,7 +455,7 @@ function AddPromptForm({ projectId, onDone }: { projectId: string; onDone: () =>
   });
 
   return (
-    <div className="mt-4 rounded-xl border-2 border-dashed border-border p-4">
+    <div className="mt-4 rounded-[10px] border border-dashed border-input p-4">
       {mutation.isError && (
         <Alert variant="destructive" className="mb-3">
           <AlertDescription>{errorMessage(mutation.error)}</AlertDescription>
@@ -527,7 +527,7 @@ function ResultDetailPanel({ result }: { result: PromptResult }) {
               {result.competitorsMentioned.map((competitor) => (
                 <Badge key={competitor.name} variant={competitor.cited ? "default" : "outline"}>
                   {competitor.name}
-                  {competitor.cited ? " · cited" : ""}
+                  {competitor.cited ? ", cited" : ""}
                 </Badge>
               ))}
             </div>
@@ -577,7 +577,7 @@ function ResultDetailPanel({ result }: { result: PromptResult }) {
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <span className="section-label">
       {children}
     </span>
   );

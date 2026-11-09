@@ -1,51 +1,50 @@
+import { Wordmark } from "@/components/brand-mark";
+
+/**
+ * An eye chart that asks the product's question. Each acuity line is smaller and a little
+ * further out of focus than the last — the same blur the dashboard uses to show how clearly
+ * AI engines can see a site. The acuity column is a real sequence, so it is numbered.
+ */
+const LINES: ReadonlyArray<{ letters: string; acuity: string; size: string; blur: number }> = [
+  { letters: "CAN", acuity: "20/200", size: "text-[89px]", blur: 0 },
+  { letters: "AI", acuity: "20/100", size: "text-[67px]", blur: 0 },
+  { letters: "SEE", acuity: "20/50", size: "text-[50px]", blur: 0.6 },
+  { letters: "YOU?", acuity: "20/30", size: "text-[37px]", blur: 1.6 },
+  { letters: "BEFORE YOUR BUYERS DO", acuity: "20/20", size: "text-[16px]", blur: 2.4 },
+];
+
 export function AuthHero() {
   return (
-    <div className="relative hidden flex-1 flex-col justify-center overflow-hidden rounded-l-3xl bg-gradient-to-br from-accent to-background px-16 py-12 lg:flex">
-      <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-primary/10" />
-      <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-primary/10" />
+    <div className="relative hidden flex-1 flex-col border-r border-border bg-card px-14 py-12 lg:flex">
+      <Wordmark />
 
-      <div className="relative flex items-center gap-2.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-primary">
-          <CheckIcon className="h-4.5 w-4.5 text-primary-foreground" />
-        </div>
-        <span className="text-lg font-extrabold tracking-tight">GEOlens</span>
+      <h1 className="sr-only">Can AI see you before your buyers do?</h1>
+      <div aria-hidden="true" className="mt-12 flex flex-col gap-3">
+        {LINES.map((line) => (
+          <div key={line.acuity} className="grid grid-cols-[3.5rem_1fr] items-center gap-6">
+            <span className="text-right text-xs text-muted-foreground tabular-nums">
+              {line.acuity}
+            </span>
+            <span
+              className={`${line.size} justify-self-center pl-[0.22em] leading-none font-extrabold tracking-[0.22em]`}
+              style={line.blur > 0 ? { filter: `blur(${line.blur}px)` } : undefined}
+            >
+              {line.letters}
+            </span>
+          </div>
+        ))}
       </div>
 
-      <h1 className="relative mt-14 max-w-md text-4xl leading-tight font-extrabold tracking-tight">
-        Know what AI engines say about you — before your buyers do.
-      </h1>
-      <p className="relative mt-4 max-w-sm text-muted-foreground">
-        Track citations across ChatGPT and Perplexity, check whether AI crawlers can even
-        read your site, and get a prioritized fix list.
-      </p>
-
-      <ul className="relative mt-10 flex flex-col gap-4">
-        {[
-          "Free AI crawler access check — no card required",
-          "First real insight in under 10 minutes",
-        ].map((item) => (
-          <li key={item} className="flex items-center gap-3 text-sm">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
-              <CheckIcon className="h-3 w-3 text-primary-foreground" />
-            </span>
-            {item}
-          </li>
-        ))}
-      </ul>
+      <div className="mt-auto max-w-sm pt-12">
+        <p className="text-[21px] leading-snug font-bold tracking-[-0.01em]">
+          GEOlens checks how clearly ChatGPT and Perplexity can read, retrieve and cite your
+          site — then tells you what to fix.
+        </p>
+        <p className="mt-4 text-sm text-muted-foreground">
+          The AI crawler check is free, no card needed. First results arrive in about ten
+          minutes.
+        </p>
+      </div>
     </div>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className}>
-      <path
-        d="M4 12L10 18L20 6"
-        stroke="currentColor"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

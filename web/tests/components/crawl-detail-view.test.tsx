@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Crawl, CrawlStatus } from "@contracts/api/crawls";
-import type { PageSnapshotSummary } from "@contracts/api/snapshots";
+import type { PageSnapshotDetail, PageSnapshotSummary } from "@contracts/api/snapshots";
 import type { Page } from "@contracts/api/common";
 import { CrawlDetailView } from "@/app/(app)/projects/[projectId]/crawls/[crawlId]/crawl-detail-view";
 import { apiFetch, ApiError, API_BASE_URL } from "@/lib/api/client";
@@ -315,7 +315,8 @@ describe("CrawlDetailView", () => {
       },
     );
 
-    expect(screen.getByText("Pricing")).toBeInTheDocument();
+    // Scoped to the table: the page also appears in the lens's page picker.
+    expect(within(screen.getByRole("table")).getByText("Pricing")).toBeInTheDocument();
     expect(screen.getByText("(untitled)")).toBeInTheDocument();
     expect(screen.getByText("74")).toBeInTheDocument();
     expect(screen.getByText("not in sampled set")).toBeInTheDocument();
@@ -346,5 +347,63 @@ describe("CrawlDetailView", () => {
       ),
     );
     expect(await screen.findByRole("button", { name: /showing changed only/i })).toBeInTheDocument();
+  });
+});
+
+describe("CrawlDetailView — through the lens", () => {
+  beforeEach(() => {
+    vi.stubGlobal("EventSource", FakeEventSource);
+  });
+
+  afterEach(() => {
+    vi.mocked(apiFetch).mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  function snapshot(overrides: Partial<PageSnapshotDetail> = {}): PageSnapshotDetail {
+    return {
+      ...page(),
+      hasStructuredData: false,
+      internalLinkCount: 3,
+      externalLinkCount: 1,
+      extracted: { sections: [{ text: "Starter is $9 a month.", headingPath: ["Plans"] }] },
+      quality: null,
+      carriedForwardFromId: null,
+      ...overrides,
+    };
+  }
+
+  function renderWithLens(citedUrls: string[]) {
+    vi.mocked(apiFetch).mockImplementation((async (path: string) =>
+      path.includes("/snapshots/") ? snapshot() : { data: [page()], nextCursor: null }) as typeof apiFetch);
+    return renderWithQueryClient(
+      <CrawlDetailView
+        projectId={PROJECT_ID}
+        crawlId={CRAWL_ID}
+        initialCrawl={crawl({ status: "COMPLETED" })}
+        initialPages={{ data: [page()], nextCursor: null }}
+        citedUrls={citedUrls}
+      />,
+    );
+  }
+
+  it("shows the first crawled page on the bench, with its real text", async () => {
+    renderWithLens([]);
+
+    expect(screen.getByRole("heading", { name: "Through the lens" })).toBeInTheDocument();
+    expect((await screen.findAllByText("Starter is $9 a month.")).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Not cited\s+◦\s+Quality 74/)).toBeInTheDocument();
+    expect(apiFetch).toHaveBeenCalledWith(`/v1/projects/${PROJECT_ID}/snapshots/${page().id}`);
+  });
+
+  it("renders a page an AI answer cited as cited", async () => {
+    renderWithLens(["example.com/pricing"]);
+
+    expect(await screen.findByText(/Cited by AI\s+◦\s+Quality 74/)).toBeInTheDocument();
+  });
+
+  it("is absent when the crawl produced no pages", () => {
+    renderDetail({ status: "COMPLETED" });
+    expect(screen.queryByRole("heading", { name: "Through the lens" })).not.toBeInTheDocument();
   });
 });

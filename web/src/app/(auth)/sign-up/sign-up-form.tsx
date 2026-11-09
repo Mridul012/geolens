@@ -41,7 +41,7 @@ export function SignUpForm() {
       className="flex w-full max-w-sm flex-col gap-5"
     >
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight">Create your account</h2>
+        <h2 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Create your account</h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
           No credit card. Free tier included.
         </p>
@@ -79,7 +79,7 @@ export function SignUpForm() {
       </div>
 
       <Button type="submit" disabled={mutation.isPending} className="mt-1">
-        {mutation.isPending ? "Creating account…" : "Create account →"}
+        {mutation.isPending ? "Creating account…" : "Create account"}
       </Button>
 
       <OrDivider />

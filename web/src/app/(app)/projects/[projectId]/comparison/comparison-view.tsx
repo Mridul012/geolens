@@ -43,9 +43,9 @@ export function ComparisonView({
   });
 
   return (
-    <div className="flex flex-col gap-6 p-10">
+    <div className="flex flex-col gap-6 p-5 md:p-10">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight">Competitor Comparison</h1>
+        <h1 className="text-[28px] leading-tight font-extrabold tracking-[-0.02em]">Competitor Comparison</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           See how {comparison.own.name ?? comparison.own.domain} stacks up against the competitor
           you track.
@@ -70,7 +70,7 @@ export function ComparisonView({
 
 function SideCard({ title, side }: { title: string; side: ComparisonSide }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <SectionLabel>{title}</SectionLabel>
       <p className="mt-1 text-lg font-extrabold">{side.name ?? side.domain}</p>
       <p className="text-xs text-muted-foreground">{side.domain}</p>
@@ -85,24 +85,24 @@ function SideCard({ title, side }: { title: string; side: ComparisonSide }) {
         {METRICS.map(({ key, label }) => {
           const value = side.metrics[key];
           return (
-            <div
-              key={key}
-              className={
-                value === null
-                  ? "flex flex-col gap-1 rounded-xl border-2 border-dashed border-border p-3"
-                  : "flex flex-col gap-1 rounded-xl bg-secondary p-3"
-              }
-            >
-              <span className="text-[11px] text-muted-foreground">{label}</span>
-              <span
-                className={
-                  value === null
-                    ? "text-xl font-extrabold text-muted-foreground/50"
-                    : "text-xl font-extrabold"
-                }
-              >
-                {value ?? "—"}
-              </span>
+            <div key={key} className="flex flex-col gap-1 rounded-md border border-border p-3">
+              <span className="text-xs text-muted-foreground">{label}</span>
+              {value === null ? (
+                // Null is not zero: unmeasured renders out of focus, with words.
+                <span className="flex items-baseline gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="out-of-focus text-[28px] leading-none font-extrabold"
+                  >
+                    00
+                  </span>
+                  <span className="text-xs text-muted-foreground">not measured</span>
+                </span>
+              ) : (
+                <span className="text-[28px] leading-none font-extrabold tracking-[-0.02em] tabular-nums">
+                  {value}
+                </span>
+              )}
             </div>
           );
         })}
@@ -113,7 +113,7 @@ function SideCard({ title, side }: { title: string; side: ComparisonSide }) {
 
 function EmptyCompetitorCard() {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-secondary/40 p-8 text-center">
+    <div className="flex flex-col items-center justify-center rounded-[10px] border border-dashed border-input bg-card/60 p-8 text-center">
       <p className="text-lg font-bold">No competitor tracked</p>
       <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
         Add a competitor to unlock comparison.
@@ -124,13 +124,13 @@ function EmptyCompetitorCard() {
 
 function ShareOfVoiceCard({ shareOfVoice }: { shareOfVoice: ShareOfVoice }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <SectionLabel>Share of voice</SectionLabel>
       {shareOfVoice === null ? (
         <NotYetMeasured caption="not yet measured — run prompt tracking to see share of voice" />
       ) : (
         <div className="mt-3 flex flex-col gap-5">
-          <Stat value={formatPercent(shareOfVoice.overall)} label="overall share of voice" />
+          <Stat value={shareOfVoice.overall} label="Overall share of voice" />
 
           {shareOfVoice.perEngine.length > 0 && (
             <div>
@@ -151,7 +151,7 @@ function ShareOfVoiceCard({ shareOfVoice }: { shareOfVoice: ShareOfVoice }) {
                       <TableCell className="text-right">{row.competitorCitations}</TableCell>
                       <TableCell className="text-right">
                         {row.shareOfVoice === null ? (
-                          <span className="text-muted-foreground/50">—</span>
+                          <span className="text-xs text-muted-foreground">not measured</span>
                         ) : (
                           `${Math.round(row.shareOfVoice)}%`
                         )}
@@ -187,7 +187,7 @@ function ShareOfVoiceCard({ shareOfVoice }: { shareOfVoice: ShareOfVoice }) {
 
 function MissingTopicsCard({ topics }: { topics: MissingTopics }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div className="panel p-6">
       <SectionLabel>Missing topics</SectionLabel>
       {topics.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">No coverage gaps found.</p>
@@ -207,7 +207,7 @@ function MissingTopicsCard({ topics }: { topics: MissingTopics }) {
                   <TableCell className="font-semibold">{topic.label}</TableCell>
                   <TableCell className="text-right">
                     {topic.gap === null ? (
-                      <span className="text-muted-foreground/50">—</span>
+                      <span className="text-xs text-muted-foreground">not measured</span>
                     ) : (
                       topic.gap
                     )}
@@ -227,7 +227,7 @@ function MissingTopicsCard({ topics }: { topics: MissingTopics }) {
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-xs font-bold tracking-wide text-muted-foreground uppercase">
+    <span className="section-label">
       {children}
     </span>
   );
@@ -235,22 +235,31 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 function NotYetMeasured({ caption }: { caption: string }) {
   return (
-    <div className="mt-3 flex items-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/50 px-4 py-3">
-      <span className="text-lg font-extrabold text-muted-foreground/50">—</span>
-      <span className="text-xs text-muted-foreground">{caption}</span>
+    <div className="mt-3 flex items-center gap-4">
+      <span aria-hidden="true" className="out-of-focus text-[37px] leading-none font-extrabold">
+        00
+      </span>
+      <span className="text-sm text-muted-foreground">{caption}</span>
     </div>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ value, label }: { value: number | null; label: string }) {
   return (
     <div>
-      <div className="text-xl font-extrabold">{value}</div>
-      <div className="text-[11px] text-muted-foreground">{label}</div>
+      {value === null ? (
+        <div aria-hidden="true" className="out-of-focus text-[37px] leading-none font-extrabold">
+          00
+        </div>
+      ) : (
+        <div className="text-[37px] leading-none font-extrabold tracking-[-0.02em] tabular-nums">
+          {Math.round(value)}%
+        </div>
+      )}
+      <div className="mt-1 text-sm text-muted-foreground">
+        {label}
+        {value === null && ", not measured"}
+      </div>
     </div>
   );
-}
-
-function formatPercent(value: number | null): string {
-  return value === null ? "—" : `${Math.round(value)}%`;
 }
