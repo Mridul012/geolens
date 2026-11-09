@@ -7,7 +7,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { toast } from "sonner";
 import type { z } from "zod";
 import { createPromptBodySchema, type PromptTemplate } from "@contracts/api/prompts";
-import type { PromptResult, PromptRun } from "@contracts/api/prompt-runs";
+import type { PromptResult, PromptRun, PromptRunTrend } from "@contracts/api/prompt-runs";
+import { PromptTrendChart } from "./prompt-trend-chart";
 import { apiFetch, ApiError, API_BASE_URL } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,11 +72,13 @@ export function PromptsView({
   initialPrompts,
   initialRuns,
   initialRunsNextCursor,
+  initialTrend,
 }: {
   projectId: string;
   initialPrompts: PromptTemplate[];
   initialRuns: PromptRun[];
   initialRunsNextCursor: string | null;
+  initialTrend: PromptRunTrend["data"];
 }) {
   const queryClient = useQueryClient();
   const [addingPrompt, setAddingPrompt] = useState(false);
@@ -102,6 +105,15 @@ export function PromptsView({
     initialData: { pages: [{ data: initialRuns, nextCursor: initialRunsNextCursor }], pageParams: [null] },
   });
   const runs = runsQuery.data ? runsQuery.data.pages.flatMap((page) => page.data) : [];
+
+  // Shares the ["prompt-runs", projectId] prefix, so every place that refreshes the run
+  // list after a run finishes refreshes the trend with it.
+  const trendQuery = useQuery({
+    queryKey: ["prompt-runs", projectId, "trend"],
+    queryFn: async () =>
+      (await apiFetch<PromptRunTrend>(`/v1/projects/${projectId}/prompt-runs/trend`)).data,
+    initialData: initialTrend,
+  });
   // Runs come back newest-first (docs/API.md §3), so the head of the list is the one that
   // matters for both the "run in flight" gate and which SSE stream to open.
   const latestRun = runs[0] ?? null;
@@ -237,6 +249,11 @@ export function PromptsView({
         {addingPrompt && (
           <AddPromptForm projectId={projectId} onDone={() => setAddingPrompt(false)} />
         )}
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <SectionLabel>Trend</SectionLabel>
+        <PromptTrendChart trend={trendQuery.data} />
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">

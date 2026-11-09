@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PromptTemplate } from "@contracts/api/prompts";
-import type { PromptResult, PromptRun } from "@contracts/api/prompt-runs";
+import type { PromptResult, PromptRun, PromptRunTrend } from "@contracts/api/prompt-runs";
 import { PromptsView } from "@/app/(app)/projects/[projectId]/prompts/prompts-view";
 import { apiFetch, ApiError, API_BASE_URL } from "@/lib/api/client";
 import { renderWithQueryClient } from "../test-utils";
@@ -114,6 +114,7 @@ function renderPrompts(
   prompts: PromptTemplate[] = [],
   runs: PromptRun[] = [],
   nextCursor: string | null = null,
+  trend: PromptRunTrend["data"] = [],
 ) {
   return renderWithQueryClient(
     <PromptsView
@@ -121,6 +122,7 @@ function renderPrompts(
       initialPrompts={prompts}
       initialRuns={runs}
       initialRunsNextCursor={nextCursor}
+      initialTrend={trend}
     />,
   );
 }

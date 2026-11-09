@@ -11,6 +11,24 @@
       "port": 3000
     },
     {
+      "name": "worker-browser",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:worker:browser"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "worker-ai",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:worker:ai"
+      ],
+      "port": 3002
+    },
+    {
       "name": "web",
       "runtimeExecutable": "web/node_modules/.bin/next",
       "runtimeArgs": [

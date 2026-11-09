@@ -99,9 +99,10 @@
 | Prompt Tracking | `GET /projects/{projectId}/prompts` | session | Tracked prompt templates |
 | Prompt Tracking | `POST /projects/{projectId}/prompts` | session | Add prompt |
 | Prompt Tracking | `PATCH /projects/{projectId}/prompts/{promptId}` | session | Pin / archive (text immutable) |
-| Prompt Tracking | `GET /projects/{projectId}/prompts/{promptId}/trend` | session | Per-prompt mention/citation over time |
+| Prompt Tracking | `GET /projects/{projectId}/prompts/{promptId}/trend` | session | Per-prompt mention/citation over time — **planned, not implemented** (deferred out of M21) |
 | Prompt Tracking | `POST /projects/{projectId}/prompt-runs` | session | Trigger on-demand run (202, Idempotency-Key) |
 | Prompt Tracking | `GET /projects/{projectId}/prompt-runs` | session | Run history |
+| Prompt Tracking | `GET /projects/{projectId}/prompt-runs/trend` | session | Project-level mention rate + citation share per run, overall and per engine |
 | Prompt Tracking | `GET /projects/{projectId}/prompt-runs/{runId}` | session | Run detail + metrics |
 | Prompt Tracking | `GET /projects/{projectId}/prompt-runs/{runId}/results` | session | Per-cell results (engine × prompt × sample) |
 | Prompt Tracking | `GET /projects/{projectId}/prompt-runs/{runId}/progress` | session | SSE progress stream |
@@ -953,6 +954,8 @@ paths:
               schema: { $ref: "#/components/schemas/Problem" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  # Planned, not implemented: deferred out of M21 (docs/Milestones.md). The implemented
+  # trend is project-level: GET /projects/{projectId}/prompt-runs/trend.
   /projects/{projectId}/prompts/{promptId}/trend:
     parameters:
       - $ref: "#/components/parameters/ProjectId"
@@ -1020,6 +1023,25 @@ paths:
                     type: array
                     items: { $ref: "#/components/schemas/PromptRun" }
                   nextCursor: { type: ["string", "null"] }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /projects/{projectId}/prompt-runs/trend:
+    parameters: [ { $ref: "#/components/parameters/ProjectId" } ]
+    get:
+      tags: [Prompt Tracking]
+      summary: Mention rate and citation share per run, overall and per engine, oldest first
+      responses:
+        "200":
+          description: One point per run; a metric is null when that run could not measure it (never zero)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/PromptRunTrendPoint" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
 
   /projects/{projectId}/prompt-runs/{runId}:
@@ -1677,7 +1699,24 @@ components:
         model: { type: string }
         error: { type: ["string", "null"] }
 
+    PromptRunTrendPoint:
+      type: object
+      properties:
+        runId: { type: string, format: uuid }
+        at: { type: string, format: date-time }
+        mentionRate: { type: ["number", "null"] }
+        citationShare: { type: ["number", "null"] }
+        perEngine:
+          type: array
+          items:
+            type: object
+            properties:
+              engine: { type: string }
+              mentionRate: { type: ["number", "null"] }
+              citationShare: { type: ["number", "null"] }
+
     PromptTrendPoint:
+      description: For the planned per-prompt trend endpoint (not implemented yet).
       type: object
       properties:
         runId: { type: string, format: uuid }

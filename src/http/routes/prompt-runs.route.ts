@@ -1,6 +1,5 @@
 /** Prompt-run routes (docs/API.md §3 — Prompt Tracking). */
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
   promptResultListSchema,
@@ -8,6 +7,7 @@ import {
   promptRunListQuerySchema,
   promptRunListSchema,
   promptRunSchema,
+  promptRunTrendSchema,
 } from "../../contracts/api/prompt-runs.js";
 import { projectIdParamSchema, uuidSchema } from "../../contracts/api/common.js";
 import { problemSchema } from "../../contracts/api/errors.js";
@@ -146,23 +146,7 @@ export function registerPromptRunRoutes(app: FastifyInstance, deps: PromptRunRou
         summary: "Mention and citation trend, per engine, oldest first",
         params: projectIdParamSchema,
         response: {
-          200: z.object({
-            data: z.array(
-              z.object({
-                runId: uuidSchema,
-                at: z.string(),
-                mentionRate: z.number().nullable(),
-                citationShare: z.number().nullable(),
-                perEngine: z.array(
-                  z.object({
-                    engine: z.string(),
-                    mentionRate: z.number().nullable(),
-                    citationShare: z.number().nullable(),
-                  }),
-                ),
-              }),
-            ),
-          }),
+          200: promptRunTrendSchema,
           401: problemSchema,
           404: problemSchema,
         },

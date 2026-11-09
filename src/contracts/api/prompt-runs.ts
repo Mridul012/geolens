@@ -61,6 +61,27 @@ export const promptResultListSchema = z.object({
   nextCursor: z.string().nullable(),
 });
 
+/** One point per run, oldest first. A null metric means "not measured", never zero. */
+export const promptRunTrendSchema = z.object({
+  data: z.array(
+    z.object({
+      runId: uuidSchema,
+      at: z.string(),
+      mentionRate: z.number().nullable(),
+      citationShare: z.number().nullable(),
+      perEngine: z.array(
+        z.object({
+          engine: z.string(),
+          mentionRate: z.number().nullable(),
+          citationShare: z.number().nullable(),
+        }),
+      ),
+    }),
+  ),
+});
+
+export type PromptRunTrend = z.infer<typeof promptRunTrendSchema>;
+
 export const promptRunListQuerySchema = z.object({
   cursor: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),

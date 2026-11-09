@@ -1,7 +1,9 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   Globe,
   ShieldCheck,
@@ -11,12 +13,18 @@ import {
   Lightbulb,
   FileText,
   CreditCard,
+  History,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import type { ProjectDetail } from "@contracts/api/projects";
 import type { Me } from "@contracts/api/auth";
+import { apiFetch } from "@/lib/api/client";
+import type { EventPage } from "@/lib/api/events";
+import { readHistorySeen, subscribeHistorySeen } from "@/lib/history-seen";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { SignOutButton } from "@/components/sign-out-button";
 
 const NAV_ITEMS: ReadonlyArray<{ label: string; segment: string; icon: LucideIcon }> = [
   { label: "Crawls", segment: "crawls", icon: Globe },
@@ -25,14 +33,20 @@ const NAV_ITEMS: ReadonlyArray<{ label: string; segment: string; icon: LucideIco
   { label: "Prompt Tracking", segment: "prompts", icon: MessageSquare },
   { label: "Comparison", segment: "comparison", icon: GitCompare },
   { label: "Recommendations", segment: "recommendations", icon: Lightbulb },
+  { label: "History", segment: "history", icon: History },
   { label: "Reports", segment: "reports", icon: FileText },
+  { label: "Settings", segment: "settings", icon: Settings },
   { label: "Billing", segment: "billing", icon: CreditCard },
 ];
+
+/** The kinds that mean "a crawl finished" — the in-app notification of FR-14.1. */
+const CRAWL_RESULT_KINDS = ["crawl_completed", "crawl_failed"] as const;
 
 export function Sidebar({ project, me }: { project: ProjectDetail; me: Me }) {
   const pathname = usePathname();
   const dashboardHref = `/projects/${project.id}`;
   const isDashboardActive = pathname === dashboardHref;
+  const hasNewResults = useHasNewCrawlResults(project.id, pathname);
 
   return (
     <aside className="flex w-60 min-w-60 flex-col gap-6 border-r border-border bg-card p-4">
@@ -91,24 +105,64 @@ export function Sidebar({ project, me }: { project: ProjectDetail; me: Me }) {
             >
               <Icon className="h-4.5 w-4.5" />
               {label}
+              {segment === "history" && hasNewResults && (
+                <span
+                  className="ml-auto h-2 w-2 rounded-full bg-primary"
+                  aria-label="New crawl results"
+                  role="status"
+                />
+              )}
             </Link>
           );
         })}
       </nav>
 
       <div className="mt-auto flex items-center gap-2.5 border-t border-border pt-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
           {(me.name ?? me.email).slice(0, 1).toUpperCase()}
         </div>
-        <div className="flex flex-col overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <span className="truncate text-sm font-semibold">{me.name ?? me.email}</span>
           <Badge variant="secondary" className="w-fit px-1.5 py-0 text-[10px]">
             {me.plan === "PRO" ? "Pro plan" : "Free plan"}
           </Badge>
         </div>
+        <SignOutButton />
       </div>
     </aside>
   );
+}
+
+/**
+ * True while a crawl finished after this device last opened History. Visiting History
+ * clears it; the server stays the source of truth for the events themselves.
+ */
+function useHasNewCrawlResults(projectId: string, pathname: string | null): boolean {
+  const seenAt = useSyncExternalStore(
+    subscribeHistorySeen,
+    () => readHistorySeen(projectId),
+    () => null,
+  );
+
+  const latest = useQuery({
+    queryKey: ["events", projectId, "latest-crawl-result"],
+    queryFn: async () => {
+      const pages = await Promise.all(
+        CRAWL_RESULT_KINDS.map((kind) =>
+          apiFetch<EventPage>(`/v1/projects/${projectId}/events?kind=${kind}&limit=1`),
+        ),
+      );
+      const times = pages.flatMap((page) =>
+        page.data.map((event) => new Date(event.createdAt).getTime()),
+      );
+      return times.length === 0 ? null : Math.max(...times);
+    },
+    refetchInterval: 60_000,
+  });
+
+  if (pathname === `/projects/${projectId}/history`) return false;
+  const latestAt = latest.data ?? null;
+  return latestAt !== null && (seenAt === null || latestAt > seenAt);
 }
 
 function GridIcon({ className }: { className?: string }) {

@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
+import { OrDivider } from "@/components/or-divider";
 import type { z } from "zod";
 
 type SignInValues = z.infer<typeof signInBodySchema>;
@@ -71,6 +73,9 @@ export function SignInForm() {
       <Button type="submit" disabled={mutation.isPending} className="mt-1">
         {mutation.isPending ? "Signing in…" : "Sign in →"}
       </Button>
+
+      <OrDivider />
+      <GoogleSignInButton />
 
       <p className="text-center text-sm text-muted-foreground">
         New here?{" "}

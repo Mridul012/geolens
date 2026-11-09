@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
+import { vi } from "vitest";
 
 /**
  * A fresh QueryClient per test so mutations/queries settle deterministically.
@@ -19,6 +20,27 @@ export function createTestQueryClient(): QueryClient {
       mutations: { retry: false },
     },
   });
+}
+
+/**
+ * A fresh in-memory `localStorage` for one test. Node 25+ ships its own global
+ * `localStorage` that shadows jsdom's and, without `--localstorage-file`, has no working
+ * methods — so code that persists per-device conveniences gets a real Storage here.
+ */
+export function stubLocalStorage(): Storage {
+  const store = new Map<string, string>();
+  const storage: Storage = {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, value) => void store.set(key, String(value)),
+    removeItem: (key) => void store.delete(key),
+    clear: () => store.clear(),
+    key: (index) => [...store.keys()][index] ?? null,
+    get length() {
+      return store.size;
+    },
+  };
+  vi.stubGlobal("localStorage", storage);
+  return storage;
 }
 
 export function renderWithQueryClient(ui: ReactElement) {

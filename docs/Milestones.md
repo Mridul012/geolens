@@ -49,6 +49,7 @@ CI green (typecheck, lint incl. boundary rules, unit, integration) · deployed t
 | M18 | Scheduling, notifications & digest | M | 3d | M15, M17 |
 | M19 | Billing & plan enforcement 🚩 | M | 2d | M4 |
 | M20 | Hardening & launch gate | M | 3d | all |
+| M21 | Web completeness: account exits, project settings, history, prompt trend | M | 3d | M3, M4, M15, M18 |
 
 **Total ≈ 58 focused days ≈ 12 weeks** — matches the PRD's one-quarter target with slack for reality.
 
@@ -489,6 +490,38 @@ CI green (typecheck, lint incl. boundary rules, unit, integration) · deployed t
 **Complexity:** M (≈3d)
 **Tests:** the drills are the tests.
 **Commit:** `chore(hardening): failure drills, golden-eval CI gate, and launch runbook`
+
+---
+
+### M21 — Web Completeness: Account Exits, Project Settings, History, Prompt Trend
+
+**Objective:** close the P0 gaps where the API already exists but the web app (docs/Frontend-Design.md) never calls it. Frontend-only — no new endpoints, no new dependencies.
+
+**Features:**
+- **Sign-out** from the sidebar (`POST /auth/sign-out`) → server cache cleared, back to `/sign-in` (FR-1.1).
+- **Google sign-in/sign-up** button (`POST /auth/sign-in/social { provider: "google", callbackURL }`) → browser follows the returned `url`. When Google is not configured the API's `400 VALIDATION_FAILED` message is shown as-is, never a broken redirect (FR-1.1).
+- **Project settings** page: rename + timezone (`PATCH /projects/{id}`); competitor list, add, remove (`GET/POST/DELETE /projects/{id}/competitors[/{siteId}]`) with `PLAN_LIMIT_EXCEEDED` and duplicate/invalid-URL failures surfaced; delete project behind a typed-name confirmation (`DELETE /projects/{id}` → `202 PURGE_SCHEDULED` → `/projects`) (FR-2.3, FR-2.4).
+- **History** page: the "what changed" feed (`GET /projects/{id}/events`), newest first, cursor-paginated, each kind written in plain language with links to its crawl or run; unknown kinds render generically rather than being hidden (FR-13.3).
+- **In-app crawl notification:** the sidebar's History entry shows a dot while a `crawl_completed` / `crawl_failed` event is newer than this device's last visit to History (last-seen timestamp is a per-device convenience in `localStorage`; the server stays the source of truth for events) (FR-14.1).
+- **Prompt tracking trend chart:** mention rate and citation share across runs, overall and per engine, from the implemented `GET /projects/{id}/prompt-runs/trend`; a null point is drawn as a gap, never as zero (Frontend-Design §7).
+
+**Out of scope (later milestones):** password reset + email verification (needs new endpoints → contract first), command palette, score-delta cause attribution (FR-13.2), per-prompt trend.
+
+**Files/folders:** `web/src/app/(app)/projects/[projectId]/{settings,history}/`, `web/src/components/sidebar.tsx`, `web/src/app/(auth)/`, prompts view, `web/tests/components/`.
+
+**Dependencies:** M3 (auth), M4 (projects/competitors), M15 (prompt-run trend), M18 (events).
+
+**Acceptance criteria:**
+- [ ] Signing out ends the session server-side; a protected page afterwards redirects to `/sign-in`
+- [ ] Google button starts OAuth when configured; shows the API's message when not
+- [ ] Rename/timezone, competitor add/remove and project delete all work end to end; every documented failure (400, 403 `PLAN_LIMIT_EXCEEDED`, 404) is shown in plain language
+- [ ] History renders every emitted event kind and paginates; the sidebar dot appears after a crawl finishes and clears on visiting History
+- [ ] Trend chart renders runs oldest→newest per engine; nulls are gaps; fewer than two runs shows the designed empty state
+- [ ] Types come only from `src/contracts`; server state only in TanStack Query with project-scoped keys invalidated on mutation (Engineering-Rules §8)
+
+**Complexity:** M (≈3d)
+**Tests:** component tests per new view/control covering success, empty, loading and each documented failure; existing web suites stay green.
+**Commit:** `feat(web): sign-out, Google sign-in, project settings, history feed, and prompt trend`
 
 ---
 
