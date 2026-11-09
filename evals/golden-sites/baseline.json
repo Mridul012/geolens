@@ -1,0 +1,72 @@
+{
+  "configVersion": "scoring.v1",
+  "recordedAt": "2026-09-05T11:34:25.608Z",
+  "sites": {
+    "rich-saas": {
+      "composite": 78,
+      "components": {
+        "citation": null,
+        "retrievability": 78,
+        "contentQuality": 72,
+        "topicCoverage": 61,
+        "technical": 100,
+        "trust": 100
+      }
+    },
+    "thin-saas": {
+      "composite": 25,
+      "components": {
+        "citation": null,
+        "retrievability": 18,
+        "contentQuality": 22,
+        "topicCoverage": 10,
+        "technical": 63,
+        "trust": 25
+      }
+    },
+    "blog-heavy": {
+      "composite": 59,
+      "components": {
+        "citation": null,
+        "retrievability": 52,
+        "contentQuality": 70,
+        "topicCoverage": 33,
+        "technical": 90,
+        "trust": 75
+      }
+    },
+    "robots-blocked": {
+      "composite": 66,
+      "components": {
+        "citation": null,
+        "retrievability": 74,
+        "contentQuality": 80,
+        "topicCoverage": 61,
+        "technical": 40,
+        "trust": 60
+      }
+    },
+    "no-structured-data": {
+      "composite": 64,
+      "components": {
+        "citation": null,
+        "retrievability": 64,
+        "contentQuality": 73,
+        "topicCoverage": 61,
+        "technical": 57,
+        "trust": 60
+      }
+    },
+    "stale-blog": {
+      "composite": 42,
+      "components": {
+        "citation": null,
+        "retrievability": 38,
+        "contentQuality": 40,
+        "topicCoverage": 30,
+        "technical": 90,
+        "trust": 10
+      }
+    }
+  }
+}

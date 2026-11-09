@@ -1,0 +1,643 @@
+// Vryse Lite — Prisma schema.
+//
+// Verbatim from docs/Database.md §4. snake_case in Postgres, camelCase in Prisma via
+// @map/@@map; the database is the source of truth for naming (§1.2). The SQL-only layer
+// (partial/expression uniques, CHECKs, GIN/BRIN) lives in the migration, marked below.
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [citext, pgcrypto, vector]
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum PlanTier {
+  FREE
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum SiteRole {
+  OWN
+  COMPETITOR
+}
+
+enum CrawlStatus {
+  QUEUED
+  CRAWLING
+  ANALYZING
+  COMPLETED
+  COMPLETED_DEGRADED
+  FAILED
+  CANCELED
+}
+
+enum RunTrigger {
+  MANUAL
+  SCHEDULED
+}
+
+enum PromptRunStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  COMPLETED_DEGRADED
+  FAILED
+}
+
+enum GeneratedSource {
+  GENERATED
+  USER
+}
+
+/// Buyer stage a topic sits at (ADR 0004). Values mirror contracts/ai/taxonomy.ts.
+enum BuyerIntent {
+  awareness
+  consideration
+  decision
+
+  @@map("buyer_intent")
+}
+
+enum ArchivableStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum RecSource {
+  RULE
+  AI
+}
+
+enum RecPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum RecStatus {
+  OPEN
+  DONE
+  DISMISSED
+  VALIDATED
+  REGRESSED
+}
+
+enum ReportKind {
+  ON_DEMAND
+  SCHEDULED
+}
+
+enum ReportStatus {
+  QUEUED
+  GENERATING
+  READY
+  FAILED
+}
+
+enum JobKind {
+  CRAWL
+  PROMPT_SIM
+  REPORT
+  DIGEST
+  CLEANUP
+  ROLLUP
+}
+
+enum JobStatus {
+  QUEUED
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+  CANCELED
+}
+
+// ─────────────────────── Identity ────────────────────────
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid // app supplies UUIDv7
+  email           String    @unique @db.Citext
+  name            String?
+  imageUrl        String?   @map("image_url")
+  // Better Auth's boolean; `emailVerifiedAt` stays as the human-meaningful timestamp and
+  // is maintained by a database hook when the boolean flips (ADR 0002).
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  projects      Project[]
+  sessions      Session[]
+  oauthAccounts OauthAccount[]
+  subscription  Subscription?
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  ip        String?
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Every credential type lives here, not just OAuth: `provider = "credential"` carries the
+/// email/password secret (ADR 0002). Better Auth maps its `account` model onto this table.
+model OauthAccount {
+  id                    String    @id @default(uuid()) @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  provider              String
+  providerAccountId     String    @map("provider_account_id")
+  /// Better Auth's issuer discriminator — "credential" for email/password, the OAuth
+  /// issuer URL otherwise. Distinct from `provider`, which names the strategy.
+  issuer                String
+  password              String?
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz(6)
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz(6)
+  scope                 String?
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@unique([issuer, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+/// Email-verification and password-reset tokens (Better Auth storage, ADR 0002).
+model Verification {
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("verifications")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid()) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  stripeCustomerId     String             @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  plan                 PlanTier           @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd     DateTime?          @map("current_period_end") @db.Timestamptz(6)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+// ──────────────────────── Tenancy ────────────────────────
+
+model Project {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  name      String
+  status    ProjectStatus @default(ACTIVE)
+  timezone  String        @default("UTC")
+  deletedAt DateTime?     @map("deleted_at") @db.Timestamptz(6)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sites           Site[]
+  crawls          Crawl[]
+  topics          Topic[]
+  promptTemplates PromptTemplate[]
+  promptRuns      PromptRun[]
+  scores          Score[]
+  recommendations Recommendation[]
+  reports         Report[]
+  jobRuns         JobRun[]
+  events          Event[]
+  aiUsage         AiUsage[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model Site {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  url       String
+  domain    String
+  role      SiteRole
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crawls  Crawl[]
+  pages   Page[]
+
+  @@unique([projectId, url])
+  // SQL-only (§6): partial unique — exactly one OWN site per project
+  @@index([projectId])
+  @@map("sites")
+}
+
+// ─────────────────────── Crawl core ──────────────────────
+
+model Crawl {
+  id                   String      @id @default(uuid()) @db.Uuid
+  siteId               String      @map("site_id") @db.Uuid
+  projectId            String      @map("project_id") @db.Uuid // denormalized; derived server-side
+  status               CrawlStatus @default(QUEUED)
+  trigger              RunTrigger
+  pagesDiscovered      Int         @default(0) @map("pages_discovered")
+  pagesCrawled         Int         @default(0) @map("pages_crawled")
+  pagesChanged         Int         @default(0) @map("pages_changed")
+  pagesFailed          Int         @default(0) @map("pages_failed")
+  degradation          Json?
+  /// The assembled analysis artifact the analysis endpoint serves (docs/adr/0003).
+  /// Each pipeline stage merges its own block, so a degraded stage leaves the rest intact.
+  analysis             Json?
+  errorReason          String?     @map("error_reason")
+  aiCostUsdMicros      BigInt      @default(0) @map("ai_cost_usd_micros")
+  scoringConfigVersion String?     @map("scoring_config_version")
+  pipelineVersion      String?     @map("pipeline_version")
+  queuedAt             DateTime    @default(now()) @map("queued_at") @db.Timestamptz(6)
+  startedAt            DateTime?   @map("started_at") @db.Timestamptz(6)
+  finishedAt           DateTime?   @map("finished_at") @db.Timestamptz(6)
+  createdAt            DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  site          Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snapshots     PageSnapshot[]
+  chunks        Chunk[]
+  topicCoverage TopicCoverage[]
+  scores        Score[]
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([siteId, createdAt(sort: Desc)])
+  // SQL-only (§6): partial unique — one active crawl per site
+  @@map("crawls")
+}
+
+model Page {
+  id                String    @id @default(uuid()) @db.Uuid
+  siteId            String    @map("site_id") @db.Uuid
+  url               String
+  urlHash           String    @map("url_hash")
+  latestContentHash String?   @map("latest_content_hash")
+  firstSeenAt       DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt        DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  site      Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  snapshots PageSnapshot[]
+
+  @@unique([siteId, urlHash])
+  @@index([siteId, lastSeenAt])
+  @@map("pages")
+}
+
+model PageSnapshot {
+  id                   String    @id @default(uuid()) @db.Uuid // UUIDv7 from app
+  crawlId              String    @map("crawl_id") @db.Uuid
+  pageId               String    @map("page_id") @db.Uuid
+  httpStatus           Int?      @map("http_status") @db.SmallInt
+  contentHash          String    @map("content_hash")
+  changed              Boolean   @default(true)
+  carriedForwardFromId String?   @map("carried_forward_from_id") @db.Uuid
+  title                String?
+  wordCount            Int?      @map("word_count")
+  publishedAt          DateTime? @map("published_at") @db.Timestamptz(6)
+  pageUpdatedAt        DateTime? @map("page_updated_at") @db.Timestamptz(6)
+  hasStructuredData    Boolean   @default(false) @map("has_structured_data")
+  internalLinkCount    Int?      @map("internal_link_count")
+  externalLinkCount    Int?      @map("external_link_count")
+  qualityScore         Int?      @map("quality_score") @db.SmallInt
+  extracted            Json
+  quality              Json?
+  storageKey           String    @map("storage_key")
+  fetchedAt            DateTime  @map("fetched_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  crawl              Crawl          @relation(fields: [crawlId], references: [id], onDelete: Cascade)
+  page               Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  carriedForwardFrom PageSnapshot?  @relation("CarryForward", fields: [carriedForwardFromId], references: [id], onDelete: SetNull)
+  carriedForwardTo   PageSnapshot[] @relation("CarryForward")
+  chunks             Chunk[]
+
+  @@unique([crawlId, pageId])
+  @@index([pageId, createdAt(sort: Desc)])
+  @@map("page_snapshots")
+}
+
+model Chunk {
+  id             BigInt                       @id @default(autoincrement())
+  pageSnapshotId String                       @map("page_snapshot_id") @db.Uuid
+  crawlId        String                       @map("crawl_id") @db.Uuid // denormalized: retrieval filter
+  ordinal        Int
+  headingPath    String?                      @map("heading_path")
+  content        String
+  tokenCount     Int                          @map("token_count")
+  embedding      Unsupported("vector(1536)")? // written via raw SQL only
+  tsv            Unsupported("tsvector")?     // set in raw INSERT: to_tsvector('english', content)
+  createdAt      DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  pageSnapshot PageSnapshot @relation(fields: [pageSnapshotId], references: [id], onDelete: Cascade)
+  crawl        Crawl        @relation(fields: [crawlId], references: [id], onDelete: Cascade)
+
+  @@index([crawlId])
+  // GIN on the FTS vector (docs/Database.md §5). Declared here rather than SQL-only so
+  // `migrate dev` does not diff it away; HNSW on `embedding` stays deferred (§1 refinement).
+  @@index([tsv], type: Gin)
+  @@map("chunks")
+}
+
+// ─────────────────────── Analysis ────────────────────────
+
+model Topic {
+  id          String                       @id @default(uuid()) @db.Uuid
+  projectId   String                       @map("project_id") @db.Uuid
+  label       String
+  description String?
+  embedding   Unsupported("vector(1536)")?
+  source      GeneratedSource
+  /// Null for user-added topics and for taxonomies generated before M12 (ADR 0004).
+  buyerIntent BuyerIntent?                 @map("buyer_intent")
+  status      ArchivableStatus             @default(ACTIVE)
+  position    Int                          @default(0)
+  createdAt   DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  coverage TopicCoverage[]
+
+  @@index([projectId, status])
+  // SQL-only (§6): unique (project_id, lower(label)) where ACTIVE
+  @@map("topics")
+}
+
+model TopicCoverage {
+  crawlId       String   @map("crawl_id") @db.Uuid
+  topicId       String   @map("topic_id") @db.Uuid
+  coverageScore Int      @map("coverage_score") @db.SmallInt
+  depthChunks   Int      @map("depth_chunks")
+  evidence      Json?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  crawl Crawl @relation(fields: [crawlId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Restrict)
+
+  @@id([crawlId, topicId])
+  @@index([topicId])
+  @@map("topic_coverage")
+}
+
+// ─────────────────── Prompt simulation ───────────────────
+
+model PromptTemplate {
+  id        String           @id @default(uuid()) @db.Uuid
+  projectId String           @map("project_id") @db.Uuid
+  text      String
+  intent    String?
+  source    GeneratedSource
+  pinned    Boolean          @default(false)
+  status    ArchivableStatus @default(ACTIVE)
+  position  Int              @default(0)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  results PromptResult[]
+
+  @@index([projectId, status])
+  // SQL-only (§6): unique (project_id, md5(text)) where ACTIVE
+  @@map("prompt_templates")
+}
+
+model PromptRun {
+  id              String          @id @default(uuid()) @db.Uuid
+  projectId       String          @map("project_id") @db.Uuid
+  trigger         RunTrigger
+  status          PromptRunStatus @default(QUEUED)
+  engines         String[]
+  mentionRate     Decimal?        @map("mention_rate") @db.Decimal(5, 2)
+  citationShare   Decimal?        @map("citation_share") @db.Decimal(5, 2)
+  metrics         Json?
+  aiCostUsdMicros BigInt          @default(0) @map("ai_cost_usd_micros")
+  startedAt       DateTime?       @map("started_at") @db.Timestamptz(6)
+  finishedAt      DateTime?       @map("finished_at") @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  results PromptResult[]
+  scores  Score[]
+
+  @@index([projectId, createdAt(sort: Desc)])
+  // SQL-only (§6): partial unique — one active run per project
+  @@map("prompt_runs")
+}
+
+model PromptResult {
+  id                   BigInt     @id @default(autoincrement())
+  promptRunId          String     @map("prompt_run_id") @db.Uuid
+  promptTemplateId     String     @map("prompt_template_id") @db.Uuid
+  engine               String
+  sampleIndex          Int        @map("sample_index") @db.SmallInt
+  brandMentioned       Boolean    @default(false) @map("brand_mentioned")
+  brandCited           Boolean    @default(false) @map("brand_cited")
+  mentionPosition      Int?       @map("mention_position") @db.SmallInt
+  sentiment            Sentiment?
+  competitorsMentioned Json?      @map("competitors_mentioned")
+  citations            Json?
+  answerText           String?    @map("answer_text")
+  model                String
+  latencyMs            Int?       @map("latency_ms")
+  error                String?
+  createdAt            DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  promptRun      PromptRun      @relation(fields: [promptRunId], references: [id], onDelete: Cascade)
+  promptTemplate PromptTemplate @relation(fields: [promptTemplateId], references: [id], onDelete: Restrict)
+
+  @@unique([promptRunId, promptTemplateId, engine, sampleIndex])
+  @@index([promptTemplateId, createdAt])
+  @@map("prompt_results")
+}
+
+// ──────────────── Scores / Recs / Reports ────────────────
+
+model Score {
+  id                   String   @id @default(uuid()) @db.Uuid
+  projectId            String   @map("project_id") @db.Uuid
+  crawlId              String?  @map("crawl_id") @db.Uuid
+  promptRunId          String?  @map("prompt_run_id") @db.Uuid
+  composite            Int      @db.SmallInt
+  scoreCitation        Int?     @map("score_citation") @db.SmallInt
+  scoreRetrievability  Int?     @map("score_retrievability") @db.SmallInt
+  scoreContentQuality  Int?     @map("score_content_quality") @db.SmallInt
+  scoreTopicCoverage   Int?     @map("score_topic_coverage") @db.SmallInt
+  scoreTechnical       Int?     @map("score_technical") @db.SmallInt
+  scoreTrust           Int?     @map("score_trust") @db.SmallInt
+  components           Json
+  scoringConfigVersion String   @map("scoring_config_version")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crawl     Crawl?     @relation(fields: [crawlId], references: [id], onDelete: SetNull)
+  promptRun PromptRun? @relation(fields: [promptRunId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  // SQL-only (§6): CHECK (crawl_id IS NOT NULL OR prompt_run_id IS NOT NULL); range CHECKs
+  @@map("scores")
+}
+
+model Recommendation {
+  id               String      @id @default(uuid()) @db.Uuid
+  projectId        String      @map("project_id") @db.Uuid
+  fingerprint      String
+  source           RecSource
+  ruleKey          String?     @map("rule_key")
+  title            String
+  body             String
+  priority         RecPriority
+  impact           Int         @db.SmallInt
+  difficulty       Int         @db.SmallInt
+  status           RecStatus   @default(OPEN)
+  evidence         Json
+  firstSeenCrawlId String?     @map("first_seen_crawl_id") @db.Uuid
+  lastSeenCrawlId  String?     @map("last_seen_crawl_id") @db.Uuid
+  resolvedAt       DateTime?   @map("resolved_at") @db.Timestamptz(6)
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, fingerprint])
+  @@index([projectId, status])
+  // SQL-only (§6): CHECK impact/difficulty BETWEEN 1 AND 5
+  @@map("recommendations")
+}
+
+model Report {
+  id          String       @id @default(uuid()) @db.Uuid
+  projectId   String       @map("project_id") @db.Uuid
+  kind        ReportKind
+  status      ReportStatus @default(QUEUED)
+  crawlId     String?      @map("crawl_id") @db.Uuid
+  promptRunId String?      @map("prompt_run_id") @db.Uuid
+  params      Json?
+  storageKey  String?      @map("storage_key")
+  sizeBytes   Int?         @map("size_bytes")
+  generatedAt DateTime?    @map("generated_at") @db.Timestamptz(6)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("reports")
+}
+
+// ─────────────────── Ops / Ledger / Feed ─────────────────
+
+model JobRun {
+  id          String    @id @default(uuid()) @db.Uuid
+  projectId   String?   @map("project_id") @db.Uuid
+  kind        JobKind
+  refId       String?   @map("ref_id") @db.Uuid // soft ref by design — see §2.18
+  queue       String
+  bullmqJobId String?   @map("bullmq_job_id")
+  status      JobStatus @default(QUEUED)
+  attempts    Int       @default(0) @db.SmallInt
+  progress    Json?
+  error       String?
+  queuedAt    DateTime  @default(now()) @map("queued_at") @db.Timestamptz(6)
+  startedAt   DateTime? @map("started_at") @db.Timestamptz(6)
+  finishedAt  DateTime? @map("finished_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([kind, status])
+  @@map("job_runs")
+}
+
+model AiUsage {
+  id                BigInt   @id @default(autoincrement())
+  projectId         String?  @map("project_id") @db.Uuid
+  crawlId           String?  @map("crawl_id") @db.Uuid
+  promptRunId       String?  @map("prompt_run_id") @db.Uuid
+  purpose           String
+  provider          String
+  model             String
+  inputTokens       Int      @default(0) @map("input_tokens")
+  outputTokens      Int      @default(0) @map("output_tokens")
+  cachedInputTokens Int      @default(0) @map("cached_input_tokens")
+  costUsdMicros     BigInt   @map("cost_usd_micros")
+  latencyMs         Int?     @map("latency_ms")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([crawlId])
+  // BRIN on an append-only time series (docs/Database.md §5).
+  @@index([createdAt], type: Brin)
+  @@map("ai_usage")
+}
+
+model Event {
+  id          BigInt   @id @default(autoincrement())
+  projectId   String   @map("project_id") @db.Uuid
+  kind        String
+  payload     Json
+  crawlId     String?  @map("crawl_id") @db.Uuid
+  promptRunId String?  @map("prompt_run_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  // BRIN on an append-only time series (docs/Database.md §5).
+  @@index([createdAt], type: Brin)
+  @@map("events")
+}

@@ -1,0 +1,224 @@
+# Engineering-Rules §9/§15.7: typecheck → lint (boundaries included) → unit → integration.
+# Nothing merges without all four green.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+
+jobs:
+  static:
+    name: typecheck + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npm run typecheck
+      - run: npm run lint
+
+  test:
+    name: unit + integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: vryse
+          POSTGRES_PASSWORD: vryse
+          POSTGRES_DB: vryse_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vryse" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://vryse:vryse@localhost:5432/vryse_test
+      REDIS_URL: redis://localhost:6379
+      AUTH_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
+      API_BASE_URL: http://localhost:3000
+      APP_BASE_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npm test
+
+  golden:
+    # AI-Pipeline §8: a change to a prompt, a model tier or a scoring weight cannot land
+    # without the golden corpus still scoring within tolerance. Deliberate movement is
+    # fine — re-record the baseline and say why in the ADR — but it must be deliberate.
+    name: golden evals
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: vryse
+          POSTGRES_PASSWORD: vryse
+          POSTGRES_DB: vryse_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vryse" --health-interval 5s
+          --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://vryse:vryse@localhost:5432/vryse_test
+      AUTH_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
+      API_BASE_URL: http://localhost:3000
+      APP_BASE_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - name: Did this PR touch anything that moves a score?
+        id: touched
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if echo "$CHANGED" | grep -qE '^(src/infrastructure/ai/prompts/|src/config/model-tiers\.ts|src/config/scoring/)'; then
+            echo "scoring=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scoring=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Golden evals
+        if: steps.touched.outputs.scoring == 'true'
+        run: npm run evals:golden
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    needs: [static]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npm run build
+
+  audit:
+    name: dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      # §12: highs are fixed before merge.
+      - run: npm audit --audit-level=high
+
+  # web/ (docs/Frontend-Design.md) is a fully independent Next.js app with its own
+  # package.json and lockfile — not part of the layered src/ tree the jobs above police —
+  # so it gets its own install and its own gates, run every time like the backend's.
+  # Its contract imports (`@contracts/*`) resolve types from ../src/contracts (needs the
+  # root's node_modules for that file's own `zod` import) and, at runtime, from the
+  # backend's compiled ../dist/contracts (see web/vitest.config.mts and
+  # web/next.config.ts) — hence the root `npm ci` + `npm run build` steps below.
+  web-static:
+    name: web / typecheck + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
+        working-directory: web
+      - run: npm run typecheck
+        working-directory: web
+      - run: npm run lint
+        working-directory: web
+
+  web-test:
+    name: web / unit + component tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      # Tests resolve @contracts to the compiled backend output, so they validate against
+      # the exact same zod schemas the API enforces, not a hand-duplicated copy.
+      - run: npm run build
+      - run: npm ci --no-audit --no-fund
+        working-directory: web
+      - run: npm test
+        working-directory: web
+
+  web-build:
+    name: web / build
+    runs-on: ubuntu-latest
+    needs: [web-static]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npm ci --no-audit --no-fund
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+
+  web-audit:
+    name: web / dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: web
+      - run: npm audit --audit-level=high
+        working-directory: web

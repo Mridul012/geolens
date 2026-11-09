@@ -1,0 +1,60 @@
+# Local stack for `npm run dev` and the integration suites (M1 acceptance:
+# "docker compose up + three local processes boot against it").
+name: vryse-lite
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: vryse
+      POSTGRES_PASSWORD: vryse
+      POSTGRES_DB: vryse
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vryse -d vryse"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    # BullMQ needs a real always-connected Redis (Backend §15) and keyspace notifications
+    # for its delayed/repeatable jobs.
+    command: ["redis-server", "--appendonly", "yes", "--notify-keyspace-events", "Ex"]
+    ports: ["6379:6379"]
+    volumes: ["redisdata:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    # S3-compatible stand-in for Cloudflare R2 in local development.
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: vryse
+      MINIO_ROOT_PASSWORD: vryse-local-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["miniodata:/data"]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 vryse vryse-local-secret &&
+      mc mb --ignore-existing local/vryse-local &&
+      echo 'bucket ready'"
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

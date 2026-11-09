@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "web/node_modules/.bin/next",
+      "runtimeArgs": [
+        "dev",
+        "web",
+        "-p",
+        "3005"
+      ],
+      "port": 3005
+    }
+  ]
+}
