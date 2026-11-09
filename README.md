@@ -1,4 +1,4 @@
-# Vryse Lite
+# GEOlens
 
 The analytics and optimization layer for AI search — what Ahrefs and Semrush did for Google
 rankings, applied to AI-generated answers (ChatGPT, Perplexity, and similar engines).
