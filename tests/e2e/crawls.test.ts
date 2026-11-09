@@ -672,6 +672,32 @@ describe("SSE progress", () => {
     expect(response.body).toContain("event: done");
   });
 
+  // Regression: the stream's raw response head dropped the CORS headers @fastify/cors had
+  // queued, so the web app (a different origin) could never read live crawl progress.
+  it("carries CORS and security headers for the web app's origin", async () => {
+    const cookie = await signUp();
+    const project = await createProject(cookie);
+    const crawl = await startCrawl(cookie, project.id, { key: randomUUID() });
+    const crawlId = crawl.json().id;
+    await harness.prisma.crawl.update({
+      where: { id: crawlId },
+      data: { status: "COMPLETED", finishedAt: new Date() },
+    });
+
+    const response = await harness.app.inject({
+      method: "GET",
+      url: `/v1/projects/${project.id}/crawls/${crawlId}/progress`,
+      headers: { cookie, origin: "http://localhost:3001" },
+      payloadAsStream: false,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/event-stream");
+    expect(response.headers["access-control-allow-origin"]).toBe("http://localhost:3001");
+    expect(response.headers["access-control-allow-credentials"]).toBe("true");
+    expect(response.headers["x-content-type-options"]).toBe("nosniff");
+  });
+
   it("404s the stream for another user's crawl", async () => {
     const cookie = await signUp("owner@acme.test");
     const project = await createProject(cookie);

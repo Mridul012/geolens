@@ -49,7 +49,15 @@ export async function streamSse(
   const heartbeatMs = options.heartbeatMs ?? DEFAULTS.heartbeatMs;
   const maxDurationMs = options.maxDurationMs ?? DEFAULTS.maxDurationMs;
 
+  // Writing the head on the raw socket bypasses Fastify's own send, so the headers plugins
+  // already queued on `reply` — CORS for the web app's origin, helmet's security headers,
+  // the request id — must be carried over explicitly or the browser blocks the stream.
+  const queued = Object.fromEntries(
+    Object.entries(reply.getHeaders()).filter(([, value]) => value !== undefined),
+  ) as Record<string, number | string | string[]>;
+
   reply.raw.writeHead(200, {
+    ...queued,
     "content-type": "text/event-stream",
     "cache-control": "no-cache, no-transform",
     connection: "keep-alive",

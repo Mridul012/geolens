@@ -451,6 +451,57 @@ describe("the progress stream", () => {
     expect(response.body).toContain("COMPLETED");
   });
 
+  // Regression: the stream wrote its response head on the raw socket with only its own
+  // headers, dropping the CORS headers @fastify/cors had queued — so the web app (a
+  // different origin) could never read live progress in a browser.
+  it("carries CORS and security headers for the web app's origin", async () => {
+    const cookie = await signUp();
+    const projectId = await createProject(cookie);
+    const run = await harness.prisma.promptRun.create({
+      data: {
+        projectId,
+        trigger: "MANUAL",
+        status: "COMPLETED",
+        engines: ["perplexity"],
+        finishedAt: new Date(),
+      },
+    });
+
+    const response = await harness.app.inject({
+      method: "GET",
+      url: `/v1/projects/${projectId}/prompt-runs/${run.id}/progress`,
+      headers: { cookie, origin: "http://localhost:3001" },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toContain("text/event-stream");
+    expect(response.headers["access-control-allow-origin"]).toBe("http://localhost:3001");
+    expect(response.headers["access-control-allow-credentials"]).toBe("true");
+    expect(response.headers["x-content-type-options"]).toBe("nosniff");
+  });
+
+  it("never grants a disallowed origin access to the stream", async () => {
+    const cookie = await signUp();
+    const projectId = await createProject(cookie);
+    const run = await harness.prisma.promptRun.create({
+      data: {
+        projectId,
+        trigger: "MANUAL",
+        status: "COMPLETED",
+        engines: ["perplexity"],
+        finishedAt: new Date(),
+      },
+    });
+
+    const response = await harness.app.inject({
+      method: "GET",
+      url: `/v1/projects/${projectId}/prompt-runs/${run.id}/progress`,
+      headers: { cookie, origin: "https://evil.example" },
+    });
+
+    expect(response.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
   it("404s another user's run", async () => {
     const owner = await signUp("owner@acme.test");
     const projectId = await createProject(owner);
