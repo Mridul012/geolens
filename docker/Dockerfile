@@ -13,12 +13,12 @@ RUN npx prisma generate && npm run build && npm prune --omit=dev
 FROM mcr.microsoft.com/playwright:v1.49.1-jammy AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-RUN groupadd --system --gid 1001 vryse && useradd --system --uid 1001 --gid vryse vryse
-COPY --from=build --chown=vryse:vryse /app/node_modules ./node_modules
-COPY --from=build --chown=vryse:vryse /app/dist ./dist
-COPY --from=build --chown=vryse:vryse /app/prisma ./prisma
-COPY --chown=vryse:vryse package.json ./
-USER vryse
+RUN groupadd --system --gid 1001 geolens && useradd --system --uid 1001 --gid geolens geolens
+COPY --from=build --chown=geolens:geolens /app/node_modules ./node_modules
+COPY --from=build --chown=geolens:geolens /app/dist ./dist
+COPY --from=build --chown=geolens:geolens /app/prisma ./prisma
+COPY --chown=geolens:geolens package.json ./
+USER geolens
 EXPOSE 3000
 # Overridden per deployable: npm run start | start:worker:browser | start:worker:ai
 CMD ["node", "dist/http/server.js"]

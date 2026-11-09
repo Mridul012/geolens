@@ -34,13 +34,13 @@ function isSubscriptionStatus(value: unknown): value is SubscriptionStatus {
 export class FakePaymentGateway implements PaymentGateway {
   async createCheckoutSession(input: CheckoutSessionInput): Promise<{ url: string }> {
     return {
-      url: `https://fake-checkout.vryse.local/session/${randomUUID()}?userId=${input.userId}`,
+      url: `https://fake-checkout.geolens.local/session/${randomUUID()}?userId=${input.userId}`,
     };
   }
 
   async createPortalSession(input: PortalSessionInput): Promise<{ url: string }> {
     return {
-      url: `https://fake-portal.vryse.local/session/${randomUUID()}?customer=${input.stripeCustomerId}`,
+      url: `https://fake-portal.geolens.local/session/${randomUUID()}?customer=${input.stripeCustomerId}`,
     };
   }
 

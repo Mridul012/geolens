@@ -105,7 +105,7 @@ describe("ReportsView", () => {
   it("toasts a clear message on 409 NO_COMPLETED_CRAWL", async () => {
     vi.mocked(apiFetch).mockRejectedValue(
       new ApiError({
-        type: "https://api.vryse.example/errors/no-completed-crawl",
+        type: "https://api.geolens.example/errors/no-completed-crawl",
         code: "NO_COMPLETED_CRAWL",
         title: "No completed crawl",
         status: 409,

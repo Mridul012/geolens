@@ -1,4 +1,4 @@
-# Vryse Lite — Backend Architecture
+# GEOlens — Backend Architecture
 
 **Author:** Staff Engineering
 **Status:** Design review draft

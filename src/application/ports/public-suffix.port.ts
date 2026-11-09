@@ -1,8 +1,8 @@
 /**
  * Registrable-domain resolution behind a port (Engineering-Rules §2.2).
  *
- * Citation matching turns on eTLD+1 — `blog.vryse.com` and `vryse.com` are the same
- * business citing itself, while `notvryse.com` is somebody else. Getting that right needs
+ * Citation matching turns on eTLD+1 — `blog.geolens.com` and `geolens.com` are the same
+ * business citing itself, while `notgeolens.com` is somebody else. Getting that right needs
  * the public-suffix list, which is a dependency and a data file, so it lives in
  * infrastructure and the pure matching code is handed the answers.
  *

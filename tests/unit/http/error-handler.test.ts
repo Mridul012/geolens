@@ -16,13 +16,13 @@ import {
 } from "../../../src/domain/shared/app-error.js";
 import { ERROR_CODES, ERROR_STATUS } from "../../../src/contracts/api/errors.js";
 
-const BASE = "https://api.vryse.example/v1";
+const BASE = "https://api.geolens.example/v1";
 
 describe("toProblem", () => {
   it("renders the documented problem shape", () => {
     const problem = toProblem(planLimitExceeded("Free plan allows 1 project."), "req_123", BASE);
     expect(problem).toEqual({
-      type: "https://api.vryse.example/v1/errors/plan-limit-exceeded",
+      type: "https://api.geolens.example/v1/errors/plan-limit-exceeded",
       title: "Plan limit exceeded",
       status: 403,
       code: "PLAN_LIMIT_EXCEEDED",

@@ -12,7 +12,7 @@ import { env } from "../../config/env.js";
 import { newUuidV7 } from "../db/uuid.js";
 
 /** The session cookie name the API contract publishes (docs/API.md §3 securitySchemes). */
-export const SESSION_COOKIE_NAME = "vryse.session";
+export const SESSION_COOKIE_NAME = "geolens.session";
 
 // The return type is inferred rather than annotated: Better Auth's `Auth<Options>` is
 // generic over the exact options object, and widening it to `Auth<BetterAuthOptions>`
@@ -22,7 +22,7 @@ export function createAuth(prisma: Database) {
     env.GOOGLE_CLIENT_ID !== undefined && env.GOOGLE_CLIENT_SECRET !== undefined;
 
   return betterAuth({
-    appName: "Vryse Lite",
+    appName: "GEOlens",
     baseURL: env.API_BASE_URL,
     basePath: "/v1/auth",
     secret: env.AUTH_SECRET,
@@ -70,7 +70,7 @@ export function createAuth(prisma: Database) {
       // App-supplied UUIDv7 keeps identity inserts right-leaning like every other table
       // (docs/Database.md §1.1).
       database: { generateId: () => newUuidV7() },
-      cookiePrefix: "vryse",
+      cookiePrefix: "geolens",
       defaultCookieAttributes: {
         httpOnly: true,
         sameSite: "lax",

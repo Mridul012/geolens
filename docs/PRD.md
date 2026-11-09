@@ -1,4 +1,4 @@
-# Vryse Lite — Product Requirements Document
+# GEOlens — Product Requirements Document
 
 **Version:** 1.0 (Draft)
 **Owner:** CTO
@@ -17,9 +17,9 @@ Today, businesses have zero instrumentation for this. They cannot answer three b
 2. Can AI systems even access and understand our content?
 3. What specifically should we change to improve?
 
-**Vision statement:** Vryse Lite is the analytics and optimization layer for AI search. We help businesses measure, understand, and improve how AI engines discover, retrieve, and cite their content.
+**Vision statement:** GEOlens is the analytics and optimization layer for AI search. We help businesses measure, understand, and improve how AI engines discover, retrieve, and cite their content.
 
-**Positioning:** What Ahrefs and Semrush did for Google rankings, Vryse does for AI answers.
+**Positioning:** What Ahrefs and Semrush did for Google rankings, GEOlens does for AI answers.
 
 **Core product belief:** AI visibility is measurable, not a vibe. We measure it three ways — by running real buyer prompts against real AI engines (citation tracking), by simulating how RAG systems retrieve the site's content (retrievability), and by auditing technical access (crawler checks). Everything in the product flows from these measurements, and every score is transparent and evidence-linked. Black-box scores are how we lose trust; evidence is how we win it.
 
@@ -356,6 +356,6 @@ Become the system of record for AI visibility: public API, benchmark datasets, C
 2. Brand-mention detection edge cases: common-word brand names, misspellings, and product-vs-company mentions. Needs a detection spec before FR-7 build.
 3. Final price point and whether the free tier includes any prompt tracking at all (growth vs. cost tension).
 4. Taxonomy quality for niche industries — do we need a human-in-the-loop review step at onboarding, or is edit-after-generation enough?
-5. Report branding at MVP: fully unbranded PDF, or light Vryse branding as a growth channel?
+5. Report branding at MVP: fully unbranded PDF, or light GEOlens branding as a growth channel?
 
 ---

@@ -35,7 +35,7 @@ beforeEach(async () => {
     users: new UsersRepo(prisma),
     scores,
     mailer,
-    baseUrl: "https://app.vryse.example",
+    baseUrl: "https://app.geolens.example",
     log,
   };
 });

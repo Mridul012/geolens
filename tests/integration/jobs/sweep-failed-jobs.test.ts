@@ -40,7 +40,7 @@ beforeEach(async () => {
     jobRuns: new JobRunsRepo(prisma),
     mailer,
     clock: { now: () => now },
-    opsAlertEmail: "ops@vryse.example",
+    opsAlertEmail: "ops@geolens.example",
     log,
   };
 });

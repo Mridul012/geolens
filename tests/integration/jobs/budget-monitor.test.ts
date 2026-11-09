@@ -42,7 +42,7 @@ beforeEach(async () => {
     mailer,
     clock: { now: () => now },
     budgetMicros: BUDGET_MICROS,
-    opsAlertEmail: "ops@vryse.example",
+    opsAlertEmail: "ops@geolens.example",
     log,
   };
 });

@@ -8,7 +8,7 @@ export function AuthHero() {
         <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-primary">
           <CheckIcon className="h-4.5 w-4.5 text-primary-foreground" />
         </div>
-        <span className="text-lg font-extrabold tracking-tight">Vryse</span>
+        <span className="text-lg font-extrabold tracking-tight">GEOlens</span>
       </div>
 
       <h1 className="relative mt-14 max-w-md text-4xl leading-tight font-extrabold tracking-tight">

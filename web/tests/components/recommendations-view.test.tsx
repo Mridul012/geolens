@@ -196,7 +196,7 @@ describe("RecommendationsView", () => {
       const method = options?.method ?? "GET";
       if (method === "PATCH") {
         throw new ApiError({
-          type: "https://api.vryse.example/errors/validation-failed",
+          type: "https://api.geolens.example/errors/validation-failed",
           code: "VALIDATION_FAILED",
           title: "Validation failed",
           status: 400,

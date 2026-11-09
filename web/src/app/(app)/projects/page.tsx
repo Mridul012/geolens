@@ -24,7 +24,7 @@ export default async function ProjectsIndexPage() {
             />
           </svg>
         </div>
-        <span className="text-lg font-extrabold tracking-tight">Vryse</span>
+        <span className="text-lg font-extrabold tracking-tight">GEOlens</span>
       </div>
 
       <ProjectsView initialProjects={projects.data} />

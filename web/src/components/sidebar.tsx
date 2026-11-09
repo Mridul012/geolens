@@ -48,7 +48,7 @@ export function Sidebar({ project, me }: { project: ProjectDetail; me: Me }) {
             />
           </svg>
         </div>
-        <span className="text-lg font-bold tracking-tight text-foreground">Vryse</span>
+        <span className="text-lg font-bold tracking-tight text-foreground">GEOlens</span>
       </Link>
 
       <Link

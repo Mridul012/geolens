@@ -32,12 +32,12 @@ async function crawl(
 
   const crawler = new SiteCrawler({
     fetcher: new HttpPageFetcher({
-      userAgent: "VryseBot/1.0 (+https://vryse.example/bot)",
+      userAgent: "GEOlensBot/1.0 (+https://geolens.example/bot)",
       timeoutMs: 5_000,
       resolver: fixture.resolver,
       transport: fixture.transport,
     }),
-    userAgent: "VryseBot/1.0 (+https://vryse.example/bot)",
+    userAgent: "GEOlensBot/1.0 (+https://geolens.example/bot)",
     timeoutMs: 5_000,
     delayMs: options.delayMs ?? 0,
     timeBudgetMs: 30_000,
@@ -226,7 +226,7 @@ describe("limits and politeness", () => {
 
     const agents = site.requestHeaders().map((entry) => entry.userAgent);
     expect(agents.length).toBeGreaterThan(0);
-    expect(agents.every((agent) => agent?.includes("VryseBot") === true)).toBe(true);
+    expect(agents.every((agent) => agent?.includes("GEOlensBot") === true)).toBe(true);
   });
 });
 
@@ -324,12 +324,12 @@ describe("stopping cleanly", () => {
 
     const crawler = new SiteCrawler({
       fetcher: new HttpPageFetcher({
-        userAgent: "VryseBot/1.0",
+        userAgent: "GEOlensBot/1.0",
         timeoutMs: 5_000,
         resolver: site.resolver,
         transport: site.transport,
       }),
-      userAgent: "VryseBot/1.0",
+      userAgent: "GEOlensBot/1.0",
       timeoutMs: 5_000,
       delayMs: 0,
       timeBudgetMs: 30_000,

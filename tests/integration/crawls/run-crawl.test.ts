@@ -69,12 +69,12 @@ async function seedCrawl(): Promise<Seeded> {
 function pipelineDeps(fixture: FixtureSite, shouldStop?: () => boolean) {
   const engine = new SiteCrawler({
     fetcher: new HttpPageFetcher({
-      userAgent: "VryseBot/1.0",
+      userAgent: "GEOlensBot/1.0",
       timeoutMs: 5_000,
       resolver: fixture.resolver,
       transport: fixture.transport,
     }),
-    userAgent: "VryseBot/1.0",
+    userAgent: "GEOlensBot/1.0",
     timeoutMs: 5_000,
     delayMs: 0,
     timeBudgetMs: 30_000,

@@ -108,7 +108,7 @@ describe("CrawlsView", () => {
   it("surfaces a 409 CRAWL_ALREADY_ACTIVE failure as a toast instead of crashing", async () => {
     vi.mocked(apiFetch).mockRejectedValue(
       new ApiError({
-        type: "https://api.vryse.example/errors/crawl-already-active",
+        type: "https://api.geolens.example/errors/crawl-already-active",
         code: "CRAWL_ALREADY_ACTIVE",
         title: "Crawl already active",
         status: 409,

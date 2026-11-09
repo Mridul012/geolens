@@ -93,8 +93,8 @@ function selectMainContainer($: CheerioAPI): string {
 function sectionMarker(): { open: string; pattern: RegExp } {
   const nonce = randomBytes(8).toString("hex");
   return {
-    open: `@@VRYSE-SECTION-${nonce}:`,
-    pattern: new RegExp(`@@VRYSE-SECTION-${nonce}:(\\d+)@@`, "g"),
+    open: `@@GEOLENS-SECTION-${nonce}:`,
+    pattern: new RegExp(`@@GEOLENS-SECTION-${nonce}:(\\d+)@@`, "g"),
   };
 }
 

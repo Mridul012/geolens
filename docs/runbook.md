@@ -1,4 +1,4 @@
-# Vryse Lite — Launch Runbook
+# GEOlens — Launch Runbook
 
 **Status:** M20 hardening pass complete. Last updated 2026-09-06.
 

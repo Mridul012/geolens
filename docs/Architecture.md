@@ -1,4 +1,4 @@
-# Vryse Lite — Technical Architecture & ML Pipeline
+# GEOlens — Technical Architecture & ML Pipeline
 
 This section extends the product spec with the engineering and ML layer. Append it after the design sections.
 

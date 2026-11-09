@@ -115,7 +115,7 @@ describe("groupFor", () => {
   });
 
   it("falls back to the wildcard group for an unknown agent", () => {
-    expect(groupFor(robots, "VryseBot")?.rules[0]?.path).toBe("/star");
+    expect(groupFor(robots, "GEOlensBot")?.rules[0]?.path).toBe("/star");
   });
 
   it("is case-insensitive", () => {
@@ -188,10 +188,10 @@ describe("isPathAllowed", () => {
 describe("crawlDelayFor", () => {
   it("reads the delay from the applicable group", () => {
     const robots = parseRobotsTxt("User-agent: *\nCrawl-delay: 10");
-    expect(crawlDelayFor(robots, "VryseBot")).toBe(10);
+    expect(crawlDelayFor(robots, "GEOlensBot")).toBe(10);
   });
 
   it("returns null when unspecified", () => {
-    expect(crawlDelayFor(parseRobotsTxt("User-agent: *\nDisallow: /x"), "VryseBot")).toBeNull();
+    expect(crawlDelayFor(parseRobotsTxt("User-agent: *\nDisallow: /x"), "GEOlensBot")).toBeNull();
   });
 });

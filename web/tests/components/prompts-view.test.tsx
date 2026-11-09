@@ -101,7 +101,7 @@ function promptResult(overrides: Partial<PromptResult> = {}): PromptResult {
     sentiment: "POSITIVE",
     competitorsMentioned: [{ name: "Acme Rival", cited: false }],
     citations: ["https://example.com/best-crm"],
-    answerText: "For a 10-person sales team, Vryse is a strong pick because...",
+    answerText: "For a 10-person sales team, GEOlens is a strong pick because...",
     model: "gpt-4.1",
     latencyMs: 1200,
     error: null,
@@ -253,7 +253,7 @@ describe("PromptsView", () => {
   it("surfaces a 409 already-active failure as a toast instead of crashing", async () => {
     vi.mocked(apiFetch).mockRejectedValue(
       new ApiError({
-        type: "https://api.vryse.example/errors/prompt-run-already-active",
+        type: "https://api.geolens.example/errors/prompt-run-already-active",
         code: "PROMPT_RUN_ALREADY_ACTIVE",
         title: "Prompt run already active",
         status: 409,
@@ -337,7 +337,7 @@ describe("PromptsView", () => {
     await user.click(screen.getByRole("button", { name: /view answer/i }));
 
     expect(
-      await screen.findByText("For a 10-person sales team, Vryse is a strong pick because..."),
+      await screen.findByText("For a 10-person sales team, GEOlens is a strong pick because..."),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "https://example.com/best-crm" })).toHaveAttribute(
       "href",

@@ -1,4 +1,4 @@
-# Vryse Lite — AI Pipeline Specification
+# GEOlens — AI Pipeline Specification
 
 **Author:** Principal Engineering
 **Status:** Design review draft — the final planning document
@@ -193,8 +193,8 @@ This resolves **PRD Open Question #2**. It is deterministic-first by design: LLM
 
 Built once per project, cached:
 - `sites.name` (own site) if set
-- Registrable domain root without TLD (`vryse.com` → `vryse`)
-- Domain root with common separators removed/expanded (`getvryse` → `vryse`, `vryse-lite` → `vryse lite`)
+- Registrable domain root without TLD (`geolens.com` → `geolens`)
+- Domain root with common separators removed/expanded (`getgeolens` → `geolens`, `geo-lens` → `geo lens`)
 - The project `name`
 
 All variants normalized: casefold, strip diacritics, strip punctuation, collapse whitespace.
@@ -223,7 +223,7 @@ When no trigger fires, no LLM call is made. On a typical run this means **zero**
 
 1. Take the engine's structured citation list where provided (Perplexity, Gemini grounding, OpenAI web search all return one).
 2. Also scan answer text for bare URLs and markdown links.
-3. Match on **registrable domain (eTLD+1)**, not full host — `blog.vryse.com` and `vryse.com` are both citations. Use a public-suffix list; never naive suffix matching.
+3. Match on **registrable domain (eTLD+1)**, not full host — `blog.geolens.com` and `geolens.com` are both citations. Use a public-suffix list; never naive suffix matching.
 4. `brand_cited = true` if any citation resolves to the own site's registrable domain.
 
 **Competitors:** the same variant + domain procedure runs for each competitor site, producing `competitors_mentioned: [{ name, cited }]`.

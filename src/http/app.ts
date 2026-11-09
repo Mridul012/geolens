@@ -115,7 +115,7 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
     openapi: {
       openapi: "3.1.0",
       info: {
-        title: "Vryse Lite API",
+        title: "GEOlens API",
         version: "1.0.0-mvp",
         description:
           "AI visibility platform API. Cookie-session auth, project-scoped resources, cursor pagination, RFC-7807 errors, 202+SSE for async pipelines.",
@@ -123,7 +123,7 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
       servers: [{ url: deps.baseUrl }],
       components: {
         securitySchemes: {
-          cookieAuth: { type: "apiKey", in: "cookie", name: "vryse.session" },
+          cookieAuth: { type: "apiKey", in: "cookie", name: "geolens.session" },
         },
       },
       security: [{ cookieAuth: [] }],

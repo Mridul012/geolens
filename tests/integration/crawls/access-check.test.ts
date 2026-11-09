@@ -101,7 +101,7 @@ function deps(transport: typeof socketTransport) {
     sites: new SitesRepo(prisma),
     events: new EventsRepo(prisma),
     prober: new HttpAccessProber({
-      userAgent: "VryseBot/1.0",
+      userAgent: "GEOlensBot/1.0",
       timeoutMs: 5_000,
       resolver,
       transport,

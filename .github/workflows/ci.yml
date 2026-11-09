@@ -37,12 +37,12 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: vryse
-          POSTGRES_PASSWORD: vryse
-          POSTGRES_DB: vryse_test
+          POSTGRES_USER: geolens
+          POSTGRES_PASSWORD: geolens
+          POSTGRES_DB: geolens_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U vryse" --health-interval 5s
+          --health-cmd "pg_isready -U geolens" --health-interval 5s
           --health-timeout 5s --health-retries 20
       redis:
         image: redis:7-alpine
@@ -51,7 +51,7 @@ jobs:
           --health-cmd "redis-cli ping" --health-interval 5s
           --health-timeout 3s --health-retries 20
     env:
-      DATABASE_URL: postgresql://vryse:vryse@localhost:5432/vryse_test
+      DATABASE_URL: postgresql://geolens:geolens@localhost:5432/geolens_test
       REDIS_URL: redis://localhost:6379
       AUTH_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
       API_BASE_URL: http://localhost:3000
@@ -77,15 +77,15 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: vryse
-          POSTGRES_PASSWORD: vryse
-          POSTGRES_DB: vryse_test
+          POSTGRES_USER: geolens
+          POSTGRES_PASSWORD: geolens
+          POSTGRES_DB: geolens_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U vryse" --health-interval 5s
+          --health-cmd "pg_isready -U geolens" --health-interval 5s
           --health-timeout 5s --health-retries 20
     env:
-      DATABASE_URL: postgresql://vryse:vryse@localhost:5432/vryse_test
+      DATABASE_URL: postgresql://geolens:geolens@localhost:5432/geolens_test
       AUTH_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
       API_BASE_URL: http://localhost:3000
       APP_BASE_URL: http://localhost:3001

@@ -35,7 +35,7 @@ export async function registerAdminQueues(
       const unauthorized = async (): Promise<void> => {
         await reply
           .code(401)
-          .header("www-authenticate", 'Basic realm="vryse-admin"')
+          .header("www-authenticate", 'Basic realm="geolens-admin"')
           .send({ error: "unauthorized" });
       };
 

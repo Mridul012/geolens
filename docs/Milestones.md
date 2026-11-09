@@ -1,4 +1,4 @@
-# Vryse Lite — Implementation Roadmap
+# GEOlens — Implementation Roadmap
 
 **Author:** Tech Lead
 **Status:** Execution plan v1

@@ -27,7 +27,7 @@ export function normalizeForMatching(text: string): string {
 /** Common prefixes companies bolt onto a domain when the bare one was taken. */
 const DOMAIN_PREFIXES = ["get", "try", "use", "join", "go", "my", "the"];
 
-/** The registrable domain's label, without its public suffix: `vryse.com` → `vryse`. */
+/** The registrable domain's label, without its public suffix: `geolens.com` → `geolens`. */
 export function domainRoot(registrableDomain: string): string {
   const [root] = registrableDomain.split(".");
   return root ?? registrableDomain;
@@ -45,7 +45,7 @@ export interface BrandVariantInput {
 /**
  * Every spelling of a brand we will look for.
  *
- * Deliberately does not include the full domain (`vryse.com`): a URL in the answer text is
+ * Deliberately does not include the full domain (`geolens.com`): a URL in the answer text is
  * a *citation*, and counting it as a mention too would double-count the same evidence.
  */
 export function brandVariants(input: BrandVariantInput): readonly string[] {
@@ -62,7 +62,7 @@ export function brandVariants(input: BrandVariantInput): readonly string[] {
   add(input.projectName);
   add(root);
 
-  // `getvryse` → `vryse`; `vryse-lite` → `vryse lite`, which normalization has already
+  // `getgeolens` → `geolens`; `geo-lens` → `geo lens`, which normalization has already
   // turned into a space-separated phrase.
   for (const prefix of DOMAIN_PREFIXES) {
     if (root.length > prefix.length + 2 && root.startsWith(prefix)) {

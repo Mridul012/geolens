@@ -38,8 +38,8 @@ const filledMetrics = {
 const baseComparison: Comparison = {
   own: {
     siteId: OWN_SITE_ID,
-    domain: "vryse.example",
-    name: "Vryse",
+    domain: "geolens.example",
+    name: "GEOlens",
     crawlId: OWN_CRAWL_ID,
     metrics: filledMetrics,
   },
@@ -61,7 +61,7 @@ describe("ComparisonView", () => {
     expect(screen.getByText("No competitor tracked")).toBeInTheDocument();
     expect(screen.getByText("Add a competitor to unlock comparison.")).toBeInTheDocument();
     // Own side still renders normally.
-    expect(screen.getByText("Vryse")).toBeInTheDocument();
+    expect(screen.getByText("GEOlens")).toBeInTheDocument();
     expect(screen.getByText("72")).toBeInTheDocument();
     // Share of voice and missing topics render their own "not yet measured" / empty states.
     expect(

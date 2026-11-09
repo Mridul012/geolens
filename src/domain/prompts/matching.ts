@@ -105,7 +105,7 @@ export function detectMention(
   }
 
   // Nothing matched on a word boundary. A variant buried inside a longer token is not a
-  // mention on its own — but it is the third documented trigger, because "vryselite" in an
+  // mention on its own — but it is the third documented trigger, because "geolenshq" in an
   // answer probably does mean us.
   for (const variant of variants) {
     if (variant.length < MIN_UNAMBIGUOUS_VARIANT) continue;
@@ -140,9 +140,9 @@ export interface CitationMatch {
 /**
  * Whether any citation points at the brand's own site.
  *
- * Matched on the **registrable domain**, never on the host: `blog.vryse.com` and
- * `docs.vryse.com` are both this business citing itself, and a naive suffix check would
- * also match `notvryse.com`, which is somebody else entirely.
+ * Matched on the **registrable domain**, never on the host: `blog.geolens.com` and
+ * `docs.geolens.com` are both this business citing itself, and a naive suffix check would
+ * also match `notgeolens.com`, which is somebody else entirely.
  */
 export function detectCitation(
   citations: readonly ResolvedCitation[],

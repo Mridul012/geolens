@@ -183,12 +183,12 @@ describe("extractPage — sections for heading-aware chunking (M10)", () => {
     // Untrusted input: a fixed sentinel would let a page shred its own sections and index
     // to nothing. The marker carries a per-extraction nonce, so this text is just text.
     const hostile = `<html><body><main><h2>Real heading</h2>
-        <p>${"@@VRYSE-SECTION:0@@ @@VRYSE-SECTION-abc:1@@ ".repeat(20)}</p></main></body></html>`;
+        <p>${"@@GEOLENS-SECTION:0@@ @@GEOLENS-SECTION-abc:1@@ ".repeat(20)}</p></main></body></html>`;
     const page = extractPage(hostile, options);
 
     expect(page.sections).toHaveLength(1);
     expect(page.sections[0]?.headingPath).toBe("Real heading");
-    expect(page.sections[0]?.text).toContain("@@VRYSE-SECTION:0@@");
+    expect(page.sections[0]?.text).toContain("@@GEOLENS-SECTION:0@@");
   });
 
   it("produces identical sections for identical HTML, despite the random marker", () => {

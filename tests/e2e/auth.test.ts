@@ -53,7 +53,7 @@ describe("sign-up", () => {
     expect(new Date(body.session.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
     const cookies = response.headers["set-cookie"];
-    expect(String(cookies)).toContain("vryse.session");
+    expect(String(cookies)).toContain("geolens.session");
     expect(String(cookies)).toContain("HttpOnly");
     expect(String(cookies)).toContain("SameSite=Lax");
   });

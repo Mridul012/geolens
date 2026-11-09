@@ -97,7 +97,7 @@ describe("BillingView", () => {
   it("surfaces a checkout failure via toast rather than crashing", async () => {
     vi.mocked(apiFetch).mockRejectedValue(
       new ApiError({
-        type: "https://api.vryse.example/errors/internal-error",
+        type: "https://api.geolens.example/errors/internal-error",
         code: "INTERNAL_ERROR",
         title: "Internal error",
         status: 500,

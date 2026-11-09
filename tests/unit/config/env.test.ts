@@ -3,11 +3,11 @@ import { InvalidEnvironmentError, parseEnv } from "../../../src/config/env.js";
 
 const valid = {
   NODE_ENV: "test",
-  DATABASE_URL: "postgresql://vryse:vryse@localhost:5432/vryse",
+  DATABASE_URL: "postgresql://geolens:geolens@localhost:5432/geolens",
   REDIS_URL: "redis://localhost:6379",
   AUTH_SECRET: "test-secret-0123456789abcdef0123456789",
   STORAGE_ENDPOINT: "http://localhost:9000",
-  STORAGE_BUCKET: "vryse-test",
+  STORAGE_BUCKET: "geolens-test",
   STORAGE_ACCESS_KEY_ID: "key",
   STORAGE_SECRET_ACCESS_KEY: "secret",
 } as const;
@@ -50,7 +50,7 @@ describe("parseEnv", () => {
 
   it("applies crawler defaults, including an identifying user agent", () => {
     const env = parseEnv(valid);
-    expect(env.CRAWLER_USER_AGENT).toContain("VryseBot");
+    expect(env.CRAWLER_USER_AGENT).toContain("GEOlensBot");
     // PRD security commitment: our crawler identifies itself and links to a docs page.
     expect(env.CRAWLER_USER_AGENT).toContain("+https://");
     expect(env.CRAWLER_MAX_CONCURRENCY).toBe(3);

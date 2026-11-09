@@ -1,4 +1,4 @@
-# Vryse Lite — REST API Contract (v1)
+# GEOlens — REST API Contract (v1)
 
 **Author:** Principal Backend Engineering
 **Status:** Design review draft
@@ -9,7 +9,7 @@
 
 ## 1. API Conventions
 
-**Base URL & versioning.** All routes live under `https://api.vryse.example/v1`. Version in the path, bumped only for breaking changes. Additive changes (new fields, new endpoints) are not breaking.
+**Base URL & versioning.** All routes live under `https://api.geolens.example/v1`. Version in the path, bumped only for breaking changes. Additive changes (new fields, new endpoints) are not breaking.
 
 **Authentication.** Cookie sessions (Better Auth), httpOnly + Secure + `SameSite=Lax`, DB-backed (revocable). Every endpoint requires a session unless marked `public`. **CSRF stance:** SameSite=Lax cookies + a strict CORS origin allowlist + an Origin-header check on all mutating requests. No tokens in localStorage, ever. API keys are a V2 credential type (per PRD) and are absent from this contract.
 
@@ -19,7 +19,7 @@
 
 ```json
 {
-  "type": "https://api.vryse.example/errors/plan-limit-exceeded",
+  "type": "https://api.geolens.example/errors/plan-limit-exceeded",
   "title": "Plan limit exceeded",
   "status": 403,
   "code": "PLAN_LIMIT_EXCEEDED",
@@ -124,13 +124,13 @@
 ```yaml
 openapi: 3.1.0
 info:
-  title: Vryse Lite API
+  title: GEOlens API
   version: 1.0.0-mvp
   description: >
     AI Visibility platform API. Cookie-session auth, project-scoped resources,
     cursor pagination, RFC-7807 errors, 202+SSE for async pipelines.
 servers:
-  - url: https://api.vryse.example/v1
+  - url: https://api.geolens.example/v1
   - url: http://localhost:3000/v1
     description: local development
 
@@ -1252,7 +1252,7 @@ components:
     cookieAuth:
       type: apiKey
       in: cookie
-      name: vryse.session
+      name: geolens.session
 
   parameters:
     ProjectId:

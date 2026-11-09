@@ -82,7 +82,7 @@ beforeEach(async () => {
     recommendations,
     mailer,
     clock: { now: () => now },
-    baseUrl: "https://app.vryse.example",
+    baseUrl: "https://app.geolens.example",
     log,
   };
 });

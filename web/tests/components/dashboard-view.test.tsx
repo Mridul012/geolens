@@ -117,7 +117,7 @@ describe("DashboardView", () => {
   it("starts a crawl with a fresh idempotency key and surfaces a failure", async () => {
     vi.mocked(apiFetch).mockRejectedValue(
       new ApiError({
-        type: "https://api.vryse.example/errors/crawl-already-active",
+        type: "https://api.geolens.example/errors/crawl-already-active",
         code: "CRAWL_ALREADY_ACTIVE",
         title: "Crawl already active",
         status: 409,

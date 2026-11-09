@@ -132,6 +132,6 @@ describe("OpenAPI", () => {
     const spec = response.json();
     expect(spec.openapi).toBe("3.1.0");
     expect(Object.keys(spec.paths)).toContain("/v1/me");
-    expect(spec.components.securitySchemes.cookieAuth.name).toBe("vryse.session");
+    expect(spec.components.securitySchemes.cookieAuth.name).toBe("geolens.session");
   });
 });

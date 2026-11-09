@@ -75,7 +75,7 @@ const envSchema = z.object({
   /** Identifies us to the sites we crawl, with a docs page (PRD security commitments). */
   CRAWLER_USER_AGENT: z
     .string()
-    .default("VryseBot/1.0 (+https://vryse.example/bot; AI visibility analytics)"),
+    .default("GEOlensBot/1.0 (+https://geolens.example/bot; AI visibility analytics)"),
   CRAWLER_MAX_CONCURRENCY: z.coerce.number().int().positive().max(10).default(3),
   /** Politeness delay between requests to the same domain. */
   CRAWLER_DELAY_MS: z.coerce.number().int().min(0).default(500),
@@ -115,7 +115,7 @@ const envSchema = z.object({
    */
   EMAIL_PROVIDER_MODE: z.enum(["live", "fake"]).default("fake"),
   RESEND_API_KEY: optional(z.string().min(1)),
-  EMAIL_FROM: z.string().email().default("notifications@vryse.example"),
+  EMAIL_FROM: z.string().email().default("notifications@geolens.example"),
   /** Failed-job sweeper and budget-monitor alerts; unset means "log only, no email". */
   OPS_ALERT_EMAIL: optional(z.string().email()),
 

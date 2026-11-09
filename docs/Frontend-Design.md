@@ -1,4 +1,4 @@
-# Vryse Lite — Frontend Design Spec
+# GEOlens — Frontend Design Spec
 
 **Status:** Visual direction locked via mockup canvas (Claude Design). Next.js build not yet started.
 **Pairs with:** docs/API.md (data contract), docs/PRD.md (personas/journey), docs/Engineering-Rules.md §8 (frontend stack).
@@ -7,7 +7,7 @@
 
 ## 1. Positioning
 
-Vryse Lite is Ahrefs/Semrush, but for what AI engines say about you. It tells a business
+GEOlens is Ahrefs/Semrush, but for what AI engines say about you. It tells a business
 whether ChatGPT, Perplexity, and similar engines mention or cite them when buyers ask
 relevant questions, whether those engines can actually access and understand their content,
 and exactly what to fix. Every screen should read as **evidence-first**: a score or claim is

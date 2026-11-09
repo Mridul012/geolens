@@ -103,7 +103,7 @@ describe("TopicsView", () => {
   it("surfaces a duplicate-label error from the add-topic form", async () => {
     vi.mocked(apiFetch).mockRejectedValue(
       new ApiError({
-        type: "https://api.vryse.example/errors/validation-failed",
+        type: "https://api.geolens.example/errors/validation-failed",
         code: "VALIDATION_FAILED",
         title: "Validation failed",
         status: 400,

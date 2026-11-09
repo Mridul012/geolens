@@ -32,8 +32,8 @@ describe("normalization", () => {
   });
 
   it("strips punctuation rather than deleting it, so words stay separate", () => {
-    // "vryse-lite" must become two words, not "vryselite".
-    expect(normalizeForMatching("Vryse-Lite")).toBe("vryse lite");
+    // "geo-lens" must become two words, not "geolens".
+    expect(normalizeForMatching("Geo-Lens")).toBe("geo lens");
   });
 
   it("is idempotent", () => {
@@ -52,10 +52,10 @@ describe("brand variants", () => {
     const variants = brandVariants({
       siteName: null,
       projectName: null,
-      registrableDomain: "getvryse.com",
+      registrableDomain: "getgeolens.com",
     });
-    expect(variants).toContain("getvryse");
-    expect(variants).toContain("vryse");
+    expect(variants).toContain("getgeolens");
+    expect(variants).toContain("geolens");
   });
 
   it("does not strip a prefix that would leave a stub", () => {
@@ -164,7 +164,7 @@ describe("escalation triggers", () => {
     expect(isCommonWord("notion")).toBe(true);
     expect(isCommonWord("stripe")).toBe(true);
     expect(isCommonWord("linear")).toBe(true);
-    expect(isCommonWord("vryse")).toBe(false);
+    expect(isCommonWord("geolens")).toBe(false);
   });
 });
 

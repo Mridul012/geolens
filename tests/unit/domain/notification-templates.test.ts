@@ -15,7 +15,7 @@ describe("crawlCompleteEmail", () => {
       projectName: "Acme",
       domain: "acme.com",
       composite: 72,
-      dashboardUrl: "https://app.vryse.example/p/1",
+      dashboardUrl: "https://app.geolens.example/p/1",
     });
     expect(email.subject).toContain("Acme");
     expect(email.html).toContain("acme.com");
@@ -28,7 +28,7 @@ describe("crawlCompleteEmail", () => {
       projectName: "Acme",
       domain: "acme.com",
       composite: null,
-      dashboardUrl: "https://app.vryse.example/p/1",
+      dashboardUrl: "https://app.geolens.example/p/1",
     });
     expect(email.html).toContain("pending");
     expect(email.html).not.toContain("null");
@@ -39,7 +39,7 @@ describe("crawlCompleteEmail", () => {
       projectName: '<script>alert(1)</script>',
       domain: "acme.com",
       composite: 50,
-      dashboardUrl: "https://app.vryse.example/p/1",
+      dashboardUrl: "https://app.geolens.example/p/1",
     });
     expect(email.html).not.toContain("<script>alert");
   });
@@ -50,7 +50,7 @@ describe("digestEmail", () => {
     const rise = digestEmail({
       projectName: "Acme",
       domain: "acme.com",
-      dashboardUrl: "https://app.vryse.example/p/1",
+      dashboardUrl: "https://app.geolens.example/p/1",
       content: {
         scoreDelta: 8,
         currentComposite: 72,
@@ -68,7 +68,7 @@ describe("digestEmail", () => {
     const fall = digestEmail({
       projectName: "Acme",
       domain: "acme.com",
-      dashboardUrl: "https://app.vryse.example/p/1",
+      dashboardUrl: "https://app.geolens.example/p/1",
       content: {
         scoreDelta: -5,
         currentComposite: 60,

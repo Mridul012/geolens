@@ -1,4 +1,4 @@
-# Vryse Lite — PostgreSQL Schema Design
+# GEOlens — PostgreSQL Schema Design
 
 **Author:** Database Architecture
 **Status:** Design review draft

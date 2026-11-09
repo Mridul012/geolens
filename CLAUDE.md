@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-## What Vryse Lite is
+## What GEOlens is
 
-Vryse Lite is the analytics and optimization layer for AI search — what Ahrefs and Semrush did for Google rankings, applied to AI-generated answers (ChatGPT, Perplexity, and similar engines). It answers three questions a business currently has no instrumentation for: do AI engines mention or cite us when buyers ask relevant questions, can AI systems access and understand our content, and what should we change to improve. It measures AI visibility three ways — prompt-based citation tracking against real AI engines, retrievability simulation of RAG-style retrieval, and technical AI-crawler access audits — and every score is transparent, versioned, and evidence-linked rather than a black box. It ships as freemium SaaS: a free tier (limited crawl + AI crawler access check) as the growth loop, and one paid tier unlocking full crawls, prompt tracking, competitor comparison, and PDF reports.
+GEOlens is the analytics and optimization layer for AI search — what Ahrefs and Semrush did for Google rankings, applied to AI-generated answers (ChatGPT, Perplexity, and similar engines). It answers three questions a business currently has no instrumentation for: do AI engines mention or cite us when buyers ask relevant questions, can AI systems access and understand our content, and what should we change to improve. It measures AI visibility three ways — prompt-based citation tracking against real AI engines, retrievability simulation of RAG-style retrieval, and technical AI-crawler access audits — and every score is transparent, versioned, and evidence-linked rather than a black box. It ships as freemium SaaS: a free tier (limited crawl + AI crawler access check) as the growth loop, and one paid tier unlocking full crawls, prompt tracking, competitor comparison, and PDF reports.
 
 ## Locked stack
 

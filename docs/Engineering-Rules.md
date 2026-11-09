@@ -1,6 +1,6 @@
 # Engineering-Rules.md
 
-**Status:** Constitution — source of truth for all engineering work on Vryse Lite.
+**Status:** Constitution — source of truth for all engineering work on GEOlens.
 **Applies to:** every human engineer and every AI coding agent (Claude Code, Cursor, Copilot, or any other), on every change, forever.
 **Relationship to other documents:** the PRD, System Architecture, Database Design, Backend Structure, API Contract, AI Pipeline, and Implementation Roadmap define **what** we build. This file defines **how**. If code conflicts with this file, the code is wrong. If this file must change, that change happens through a pull request with an ADR — never silently.
 

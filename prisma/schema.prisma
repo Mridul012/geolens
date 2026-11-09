@@ -1,4 +1,4 @@
-// Vryse Lite — Prisma schema.
+// GEOlens — Prisma schema.
 //
 // Verbatim from docs/Database.md §4. snake_case in Postgres, camelCase in Prisma via
 // @map/@@map; the database is the source of truth for naming (§1.2). The SQL-only layer

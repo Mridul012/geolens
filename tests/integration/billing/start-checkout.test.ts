@@ -44,7 +44,7 @@ describe("startCheckout", () => {
         users: new UsersRepo(prisma),
         subscriptions: new SubscriptionsRepo(prisma),
         gateway,
-        baseUrl: "https://app.vryse.example",
+        baseUrl: "https://app.geolens.example",
       },
       user.id,
     );
@@ -69,7 +69,7 @@ describe("startCheckout", () => {
         users: new UsersRepo(prisma),
         subscriptions: new SubscriptionsRepo(prisma),
         gateway,
-        baseUrl: "https://app.vryse.example",
+        baseUrl: "https://app.geolens.example",
       },
       user.id,
     );
@@ -84,7 +84,7 @@ describe("startCheckout", () => {
         users: new UsersRepo(prisma),
         subscriptions: new SubscriptionsRepo(prisma),
         gateway: new FakePaymentGateway(),
-        baseUrl: "https://app.vryse.example",
+        baseUrl: "https://app.geolens.example",
       },
       "00000000-0000-0000-0000-000000000000",
     );

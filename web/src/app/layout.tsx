@@ -10,7 +10,7 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Vryse Lite",
+  title: "GEOlens",
   description: "AI visibility analytics — what ChatGPT and Perplexity say about you.",
 };
 
